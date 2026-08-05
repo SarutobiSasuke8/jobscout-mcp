@@ -1,0 +1,59 @@
+{
+  "name": "@sarutobi/jobscout-mcp",
+  "version": "0.1.0",
+  "description": "A privacy-first, multi-source MCP server for job discovery, normalization, deduplication, and source provenance.",
+  "license": "Apache-2.0",
+  "author": "Alexei Udall",
+  "homepage": "https://github.com/SarutobiSasuke8/jobscout-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SarutobiSasuke8/jobscout-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SarutobiSasuke8/jobscout-mcp/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "bin": {
+    "jobscout-mcp": "dist/src/stdio.js"
+  },
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./core": "./dist/src/core.js",
+    "./types": "./dist/src/types.js"
+  },
+  "files": [
+    "dist/src",
+    "python/jobspy_bridge.py",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --import tsx src/stdio.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file-if-exists=.env dist/src/stdio.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "npm run build && node --test \"dist/test/*.test.js\"",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.0.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.2",
+    "@types/node": "22.19.15",
+    "eslint": "10.8.0",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.66.0"
+  }
+}

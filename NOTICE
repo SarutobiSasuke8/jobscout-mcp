@@ -1,0 +1,7 @@
+JobScout MCP
+Copyright 2026 Alexei Udall
+
+This product can optionally interoperate with JobSpy, an independently developed MIT-licensed project:
+https://github.com/speedyapply/JobSpy
+
+The borgius/jobspy-mcp-server project is acknowledged as prior art. No source code from it is included in this release.
