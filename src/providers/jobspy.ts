@@ -11,9 +11,14 @@ export class JobSpyProvider implements JobProvider {
     private readonly enabled: boolean,
     private readonly pythonExecutable: string,
     private readonly timeoutMs: number,
+    private readonly sites: string[] = ["indeed"],
+    private readonly country?: string,
   ) {}
 
   status(): ProviderStatus {
+    // The resolved site list is disclosed here rather than left implicit. A caller cannot
+    // reason about the terms it is accepting, or the traffic it is generating, without being
+    // told which sites this provider actually contacts.
     return {
       id: "jobspy",
       label: "JobSpy",
@@ -22,7 +27,7 @@ export class JobSpyProvider implements JobProvider {
       transport: "subprocess",
       coverage: ["general", "ai", "web3"],
       optional_dependency: "python-jobspy",
-      notes: "Optional scraper dependency. Availability and site terms vary by source.",
+      notes: `Optional scraper dependency. When enabled, sends automated requests from this machine to: ${this.sites.join(", ")}. Configure with JOBSPY_SITES. Indeed results are country-scoped via JOBSPY_COUNTRY (currently ${this.country ?? "the python-jobspy default"}). You are responsible for each site's terms of use.`,
     };
   }
 
@@ -66,6 +71,8 @@ export class JobSpyProvider implements JobProvider {
       });
       child.stdin.end(JSON.stringify({
         search_term: query.query,
+        site_name: this.sites,
+        ...(this.country ? { country_indeed: this.country } : {}),
         ...(query.location ? { location: query.location } : {}),
         is_remote: query.remote_only,
         ...(query.hours_old ? { hours_old: query.hours_old } : {}),

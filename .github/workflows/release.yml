@@ -21,6 +21,22 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run check
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run pack:check
+      # The protocol smoke test runs on every pull request but did not run before publish, so
+      # the release gate was strictly weaker than the review gate. npm unpublish is restricted
+      # to a 72-hour window, which makes this the last cheap moment to catch a broken build.
+      - run: npm run smoke:mcp
+      # Verify the release tag matches the version actually being published.
+      - name: Verify tag matches package version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Release tag $GITHUB_REF_NAME does not match package.json version $PKG"
+            exit 1
+          fi
+          echo "Tag $GITHUB_REF_NAME matches package.json version $PKG"
       - run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

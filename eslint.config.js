@@ -6,6 +6,13 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   { ignores: ["dist/**", "node_modules/**"] },
   {
+    // Build and CI scripts run directly on Node, outside the TypeScript project.
+    files: ["scripts/**/*.mjs", "eslint.config.js"],
+    languageOptions: {
+      globals: { console: "readonly", process: "readonly", URL: "readonly" },
+    },
+  },
+  {
     files: ["**/*.ts"],
     languageOptions: {
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
