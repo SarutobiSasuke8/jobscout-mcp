@@ -1,0 +1,40 @@
+name: Provider request
+description: Propose a job source or ATS adapter
+title: "[Provider]: "
+labels: [provider]
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: Link to the provider, API, MCP server, ATS, or public documentation.
+    validations:
+      required: true
+  - type: dropdown
+    id: access
+    attributes:
+      label: Access model
+      options: [Official API, Remote MCP, Public ATS endpoint, Scraping library, Unknown]
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: Coverage value
+      description: Explain geography, role, AI/Web3, or source-diversity value.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Terms, authentication, and rate limits
+      description: Document known constraints and canonical-link quality.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Safety boundary
+      options:
+        - label: This request does not require login automation, CAPTCHA bypass, credential capture, or proxy evasion.
+          required: true

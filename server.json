@@ -1,0 +1,42 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.SarutobiSasuke8/jobscout-mcp",
+  "title": "JobScout MCP",
+  "description": "Multi-source job discovery, deduplication and AI/Web3 classification for AI agents.",
+  "websiteUrl": "https://github.com/SarutobiSasuke8/jobscout-mcp",
+  "repository": {
+    "url": "https://github.com/SarutobiSasuke8/jobscout-mcp",
+    "source": "github",
+    "id": "1324426675"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@sarutobi/jobscout-mcp",
+      "version": "0.2.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "JOBSCOUT_ENABLE_HIMALAYAS",
+          "description": "Enable the public Himalayas remote MCP search adapter.",
+          "default": "false"
+        },
+        {
+          "name": "JOBSCOUT_ENABLE_JOBSPY",
+          "description": "Enable the optional local python-jobspy bridge.",
+          "default": "false"
+        },
+        {
+          "name": "JOBSPY_PYTHON",
+          "description": "Python executable used for the optional JobSpy bridge.",
+          "default": "python"
+        }
+      ]
+    }
+  ]
+}

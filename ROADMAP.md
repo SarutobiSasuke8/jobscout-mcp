@@ -6,16 +6,20 @@
 - [x] Opt-in Himalayas and JobSpy adapters
 - [x] Source inventory and offline deduplication tools
 - [x] Unit tests and CI
-- [ ] Live compatibility proof against Himalayas MCP
+- [x] Live compatibility proof against Himalayas MCP
 - [ ] JobSpy Ireland/UK reliability fixture
 
 ## v0.2: broader source adapters
 
+- [x] Deterministic AI, agentic and Web3 discovery signals
+- [x] MCP Registry metadata, npm release workflow and Inspector smoke test
+- [x] Major-client installation recipes and optional operator guide
 - [ ] Configurable official ATS adapters for Greenhouse, Ashby and Lever
 - [ ] Apify actor adapter with bring-your-own token
 - [ ] WWSHEMI adapter after documenting its public-source contract
 - [ ] Provider health telemetry and rate-limit backoff
 - [ ] Canonical employer-link resolver with explicit confidence
+- [ ] Publish the npm package and MCP Registry entry
 
 ## Later
 

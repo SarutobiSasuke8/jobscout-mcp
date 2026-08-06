@@ -19,6 +19,9 @@ export class JobSpyProvider implements JobProvider {
       label: "JobSpy",
       enabled: this.enabled,
       authentication: "none",
+      transport: "subprocess",
+      coverage: ["general", "ai", "web3"],
+      optional_dependency: "python-jobspy",
       notes: "Optional scraper dependency. Availability and site terms vary by source.",
     };
   }
@@ -35,16 +38,28 @@ export class JobSpyProvider implements JobProvider {
       const child = spawn(this.pythonExecutable, [bridge], { shell: false, stdio: ["pipe", "pipe", "pipe"] });
       let stdout = "";
       let stderr = "";
-      const timer = setTimeout(() => {
+      let settled = false;
+      const fail = (error: Error): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
         child.kill();
-        reject(new Error(`JobSpy timed out after ${this.timeoutMs}ms.`));
+        reject(error);
+      };
+      const timer = setTimeout(() => {
+        fail(new Error(`JobSpy timed out after ${this.timeoutMs}ms.`));
       }, this.timeoutMs);
       child.stdout.setEncoding("utf8");
       child.stderr.setEncoding("utf8");
-      child.stdout.on("data", (chunk: string) => { stdout += chunk; });
-      child.stderr.on("data", (chunk: string) => { stderr += chunk; });
-      child.on("error", (error) => { clearTimeout(timer); reject(error); });
+      child.stdout.on("data", (chunk: string) => {
+        stdout += chunk;
+        if (Buffer.byteLength(stdout, "utf8") > 10_000_000) fail(new Error("JobSpy output exceeded the 10 MB safety limit."));
+      });
+      child.stderr.on("data", (chunk: string) => { stderr = `${stderr}${chunk}`.slice(-4_000); });
+      child.on("error", fail);
       child.on("close", (code) => {
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
         if (code === 0) resolve(stdout);
         else reject(new Error(`JobSpy bridge exited ${code ?? "unknown"}: ${stderr.slice(0, 1_000)}`));

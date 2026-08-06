@@ -7,6 +7,8 @@ interface RpcResponse {
   error?: { message?: string };
 }
 
+const maxResponseBytes = 5_000_000;
+
 function parseRpcResponse(body: string, contentType: string): RpcResponse {
   if (contentType.includes("text/event-stream")) {
     const data = body.split(/\r?\n/u)
@@ -59,11 +61,15 @@ export class HimalayasProvider implements JobProvider {
       label: "Himalayas MCP",
       enabled: this.enabled,
       authentication: "optional",
+      transport: "remote-mcp",
+      coverage: ["general", "ai", "web3"],
       notes: "Public search only. Canonical employer links may require separate verification.",
     };
   }
 
   private async rpc(payload: Record<string, unknown>, sessionId?: string): Promise<{ response: RpcResponse; sessionId?: string }> {
+    const endpoint = new URL(this.endpoint);
+    if (endpoint.protocol !== "https:" && endpoint.protocol !== "http:") throw new Error("Himalayas MCP URL must use http or https.");
     const response = await this.fetcher(this.endpoint, {
       method: "POST",
       headers: {
@@ -75,7 +81,11 @@ export class HimalayasProvider implements JobProvider {
       signal: AbortSignal.timeout(30_000),
     });
     if (!response.ok) throw new Error(`Himalayas MCP HTTP ${response.status}`);
-    const parsed = parseRpcResponse(await response.text(), response.headers.get("content-type") ?? "application/json");
+    const declaredLength = Number(response.headers.get("content-length") ?? 0);
+    if (declaredLength > maxResponseBytes) throw new Error("Himalayas MCP response exceeded the 5 MB safety limit.");
+    const body = await response.text();
+    if (Buffer.byteLength(body, "utf8") > maxResponseBytes) throw new Error("Himalayas MCP response exceeded the 5 MB safety limit.");
+    const parsed = parseRpcResponse(body, response.headers.get("content-type") ?? "application/json");
     if (parsed.error) throw new Error(parsed.error.message ?? "Himalayas MCP request failed.");
     const returnedSession = response.headers.get("mcp-session-id") ?? sessionId;
     return { response: parsed, ...(returnedSession ? { sessionId: returnedSession } : {}) };
@@ -90,7 +100,7 @@ export class HimalayasProvider implements JobProvider {
       params: {
         protocolVersion: "2025-06-18",
         capabilities: {},
-        clientInfo: { name: "jobscout-mcp", version: "0.1.0" },
+        clientInfo: { name: "jobscout-mcp", version: "0.2.0" },
       },
     });
 
