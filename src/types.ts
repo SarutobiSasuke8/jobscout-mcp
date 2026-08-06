@@ -62,6 +62,12 @@ export const normalizedJobSchema = z.object({
   description: z.string().trim().max(100_000).optional(),
   /** True when the description was shortened to DESCRIPTION_LIMIT during normalization. */
   description_truncated: z.boolean().optional(),
+  /**
+   * True when another record shared this record's canonical URL but named a different company.
+   * The records are deliberately NOT merged in that case, because merging would publish one
+   * listing's text under the other's employer name. Surface both and let a human decide.
+   */
+  duplicate_conflict: z.boolean().optional(),
   employment_type: z.string().trim().max(80).optional(),
   date_posted: z.iso.date().optional(),
   canonical_url: httpUrlSchema.optional(),

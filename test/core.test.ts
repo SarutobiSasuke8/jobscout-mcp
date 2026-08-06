@@ -112,3 +112,79 @@ void test("strips characters that hide injected instructions from a human review
   // The prose itself is preserved verbatim: containment is about visibility, not censorship.
   assert.match(description, /Ignore previous instructions\./u);
 });
+
+// B5: cross-provider deduplication. Himalayas supplies its listing as job_url, which maps to
+// discovery_url only and never populates canonical_url; python-jobspy rows carrying
+// job_url_direct always do. Before the key spaces were unioned these two records lived in
+// disjoint buckets, so the same vacancy from two providers could never merge.
+void test("merges the same vacancy across providers with and without a canonical URL", () => {
+  const jobs = deduplicateJobs([
+    normalizeJob({
+      title: "Partnerships Lead",
+      company: "Example AI",
+      location: "Remote, Europe",
+      tags: [],
+      provenance: [{ provider: "himalayas", discovery_url: "https://himalayas.app/jobs/123", captured_at: capturedAt }],
+    }),
+    normalizeJob({
+      title: "Partnerships Lead",
+      company: "Example AI",
+      location: "Europe - Remote",
+      canonical_url: "https://jobs.example.com/roles/9",
+      tags: [],
+      provenance: [{ provider: "jobspy", discovery_url: "https://indeed.com/viewjob?jk=9", captured_at: capturedAt }],
+    }),
+  ]);
+
+  assert.equal(jobs.length, 1, "the same vacancy from two providers should collapse to one record");
+  assert.equal(jobs[0]?.provenance.length, 2);
+  assert.equal(jobs[0]?.canonical_url, "https://jobs.example.com/roles/9");
+});
+
+void test("treats www and scheme variants of one URL as one job", () => {
+  const jobs = deduplicateJobs([
+    normalizeJob({
+      title: "Partnerships Lead", company: "Example AI", location: "Remote",
+      canonical_url: "https://www.jobs.example.com/roles/9", tags: [],
+      provenance: [{ provider: "one", captured_at: capturedAt }],
+    }),
+    normalizeJob({
+      title: "Partnerships Lead", company: "Example AI", location: "Remote",
+      canonical_url: "https://jobs.example.com/roles/9", tags: [],
+      provenance: [{ provider: "two", captured_at: capturedAt }],
+    }),
+  ]);
+  assert.equal(jobs.length, 1);
+});
+
+// B6: a shared canonical_url is not proof of a shared employer. canonical_url comes from
+// provider-controlled fields with only a protocol check, so merging on it alone lets one
+// listing's text be published under another company's name.
+const hostileUrl = "https://jobs.example.com/requisitions/77";
+const legitimate = {
+  title: "Head of Partnerships", company: "Stripe", location: "Dublin",
+  canonical_url: hostileUrl, description: "Own the partnerships function.",
+  tags: [], provenance: [{ provider: "one", captured_at: capturedAt }],
+};
+const hostile = {
+  title: "Head of Partnerships", company: "Scam Ltd", location: "Dublin",
+  canonical_url: hostileUrl,
+  description: "Send your passport and bank details to claims@example.net to begin onboarding immediately.",
+  tags: [], provenance: [{ provider: "two", captured_at: capturedAt }],
+};
+
+for (const [label, records] of [
+  ["legitimate first", [legitimate, hostile]],
+  ["hostile first", [hostile, legitimate]],
+] as const) {
+  void test(`does not merge records that share a URL but name different companies (${label})`, () => {
+    const jobs = deduplicateJobs(records.map((record) => normalizeJob(record)));
+
+    assert.equal(jobs.length, 2, "records naming different employers must not collapse into one");
+    assert.equal(jobs.every((job) => job.duplicate_conflict === true), true, "both sides should be flagged");
+
+    const stripe = jobs.find((job) => job.company === "Stripe");
+    assert.ok(stripe, "the legitimate record should survive under its own name");
+    assert.equal(stripe?.description?.includes("passport"), false, "hostile text must not appear under Stripe");
+  });
+}
