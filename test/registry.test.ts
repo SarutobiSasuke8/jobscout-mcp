@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { normalizeJob } from "../src/core.js";
-import { ProviderRegistry } from "../src/registry.js";
+import { ProviderRegistry, resolveJobSpySites } from "../src/registry.js";
 
 import type { JobProvider } from "../src/types.js";
 
@@ -42,4 +42,19 @@ void test("reports unknown requested sources", async () => {
 void test("enforces remote-only filters after provider retrieval", async () => {
   const result = await new ProviderRegistry([working]).search({ query: "sales", remote_only: true, limit: 25 });
   assert.equal(result.jobs.length, 0);
+});
+
+// Which sites JobSpy contacts is a disclosure question. The default must stay conservative and
+// unrecognised values must never be forwarded to the bridge.
+void test("JobSpy site resolution defaults to Indeed only", () => {
+  assert.deepEqual(resolveJobSpySites(undefined), ["indeed"]);
+  assert.deepEqual(resolveJobSpySites(""), ["indeed"]);
+  assert.deepEqual(resolveJobSpySites("   "), ["indeed"]);
+});
+
+void test("JobSpy site resolution accepts a documented list and drops unknown values", () => {
+  assert.deepEqual(resolveJobSpySites("linkedin, glassdoor"), ["linkedin", "glassdoor"]);
+  assert.deepEqual(resolveJobSpySites("indeed,notareal site,google"), ["indeed", "google"]);
+  assert.deepEqual(resolveJobSpySites("INDEED,indeed"), ["indeed"]);
+  assert.deepEqual(resolveJobSpySites("nothing recognisable"), ["indeed"]);
 });

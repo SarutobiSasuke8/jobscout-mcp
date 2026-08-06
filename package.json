@@ -45,10 +45,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "npm run build && node --test \"dist/test/*.test.js\"",
-    "check": "npm run typecheck && npm run lint && npm test",
+    "check": "npm run typecheck && npm run lint && npm run check:boundary && npm test",
     "pack:check": "npm pack --dry-run",
     "smoke:mcp": "npx -y @modelcontextprotocol/inspector@2.1.0 --cli node dist/src/stdio.js --method tools/list",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "check:boundary": "node scripts/check-boundary.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.0.0",

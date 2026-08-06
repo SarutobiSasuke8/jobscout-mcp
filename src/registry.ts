@@ -8,6 +8,24 @@ function enabled(value: string | undefined): boolean {
   return value?.toLocaleLowerCase("en") === "true";
 }
 
+/** Sites python-jobspy can query. Anything outside this list is dropped rather than forwarded. */
+const knownJobSpySites = ["indeed", "linkedin", "glassdoor", "google", "zip_recruiter", "bayt", "naukri"] as const;
+
+/**
+ * Which sites JobSpy queries is a disclosure question, not just a configuration one: enabling
+ * this provider sends automated requests from the operator's own machine to whichever sites are
+ * listed here. The default is deliberately the single least contentious source; adding
+ * LinkedIn, Glassdoor or Google is an explicit, documented opt-in. See docs/PROVIDERS.md.
+ */
+export function resolveJobSpySites(value: string | undefined): string[] {
+  const requested = (value ?? "")
+    .split(",")
+    .map((item) => item.trim().toLocaleLowerCase("en"))
+    .filter(Boolean)
+    .filter((item): item is (typeof knownJobSpySites)[number] => (knownJobSpySites as readonly string[]).includes(item));
+  return requested.length ? [...new Set(requested)] : ["indeed"];
+}
+
 function errorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : "Unknown provider failure";
   return message.replace(/[\r\n\t]+/gu, " ").slice(0, 500);
@@ -65,6 +83,8 @@ export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.
       enabled(environment.JOBSCOUT_ENABLE_JOBSPY),
       environment.JOBSPY_PYTHON ?? "python",
       Math.max(1_000, Math.min(120_000, Number(environment.JOBSPY_TIMEOUT_MS ?? 45_000) || 45_000)),
+      resolveJobSpySites(environment.JOBSPY_SITES),
+      environment.JOBSPY_COUNTRY?.trim() || undefined,
     ),
   ]);
 }

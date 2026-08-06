@@ -20,4 +20,30 @@ Uses the public remote MCP endpoint when explicitly enabled. The adapter request
 
 ## JobSpy
 
-Uses `python-jobspy` through the bundled Python bridge. It is optional because scraped job boards can throttle or change without notice. Users are responsible for following applicable site terms and local law.
+Uses `python-jobspy` through the bundled Python bridge. It is optional because scraped job boards can throttle or change without notice.
+
+### Which sites this contacts
+
+Enabling `JOBSCOUT_ENABLE_JOBSPY` causes automated requests to be sent **from your own machine** to the job boards you configure. JobScout does not proxy this traffic and does not contact these sites on your behalf.
+
+By default JobScout queries **Indeed only**. This is deliberately narrower than the set `python-jobspy` supports, so that a wider footprint is always an explicit choice.
+
+Set `JOBSPY_SITES` to a comma-separated list to change it. Recognised values:
+
+| Value | Site |
+|---|---|
+| `indeed` | Indeed (default) |
+| `linkedin` | LinkedIn |
+| `glassdoor` | Glassdoor |
+| `google` | Google Jobs |
+| `zip_recruiter` | ZipRecruiter |
+| `bayt` | Bayt |
+| `naukri` | Naukri |
+
+Unrecognised values are dropped rather than forwarded. The resolved list is reported in `jobscout_list_sources` so you can always confirm what is actually being queried.
+
+**LinkedIn, Glassdoor and Indeed each restrict automated access in their terms of use.** Adding them is your decision and your responsibility. Consider the rate limits, the account you are signed into elsewhere, and whether automated querying is appropriate for your situation before enabling them.
+
+### Country scoping
+
+Indeed results are country-scoped. JobScout sets no country by default and defers to the `python-jobspy` library default. Set `JOBSPY_COUNTRY` (for example `JOBSPY_COUNTRY=United Kingdom`) to scope Indeed searches explicitly.

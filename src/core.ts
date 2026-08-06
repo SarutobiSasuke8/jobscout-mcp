@@ -1,12 +1,54 @@
 import { createHash } from "node:crypto";
 
-import { normalizedJobSchema } from "./types.js";
+import { DESCRIPTION_LIMIT, normalizedJobSchema } from "./types.js";
 import { classifyJob } from "./taxonomy.js";
 
 import type { NormalizedJob } from "./types.js";
 
 function compact(value: string): string {
   return value.normalize("NFKC").trim().replace(/\s+/gu, " ");
+}
+
+/**
+ * Characters removed from untrusted free text before it reaches a model's context.
+ *
+ * Expressed as code point ranges rather than a regex literal so the set is reviewable without
+ * decoding escapes, and so no control character is ever embedded in this source file.
+ *
+ * - C0/C1 controls, keeping tab (9) and newline (10), which carry real formatting.
+ * - U+200B..U+200F zero-width spaces and LTR/RTL marks.
+ * - U+202A..U+202E and U+2066..U+2069 bidirectional overrides and isolates.
+ * - U+FEFF zero-width no-break space / byte order mark.
+ *
+ * The last three groups are the ones that matter for injection: they let text hide from, or
+ * visually reorder itself for, a human reviewing the same listing a model is reading.
+ */
+function isStrippedCharacter(codePoint: number): boolean {
+  if (codePoint === 9 || codePoint === 10) return false;
+  return codePoint < 32
+    || (codePoint >= 0x7f && codePoint <= 0x9f)
+    || (codePoint >= 0x200b && codePoint <= 0x200f)
+    || (codePoint >= 0x202a && codePoint <= 0x202e)
+    || (codePoint >= 0x2066 && codePoint <= 0x2069)
+    || codePoint === 0xfeff;
+}
+
+/**
+ * Job descriptions are attacker-controlled text. Unlike the identity fields they keep their
+ * line structure, so they are cleaned rather than compacted. This does not stop a downstream
+ * model acting on instructions embedded in the prose; nothing at this layer can. It removes
+ * the tricks that make such instructions invisible, and bounds the volume.
+ */
+function sanitizeUntrustedText(value: string): { text: string; truncated: boolean } {
+  const cleaned = [...value.normalize("NFKC")]
+    .filter((character) => !isStrippedCharacter(character.codePointAt(0) ?? 0))
+    .join("")
+    .replace(/[ \t]+/gu, " ")
+    .replace(/\n{3,}/gu, "\n\n")
+    .trim();
+  return cleaned.length > DESCRIPTION_LIMIT
+    ? { text: `${cleaned.slice(0, DESCRIPTION_LIMIT).trimEnd()}...`, truncated: true }
+    : { text: cleaned, truncated: false };
 }
 
 function identityPart(value: string): string {
@@ -36,12 +78,14 @@ export function fingerprint(job: Omit<NormalizedJob, "id"> | NormalizedJob): str
 }
 
 export function normalizeJob(job: Omit<NormalizedJob, "id"> & { id?: string }): NormalizedJob {
+  const description = job.description === undefined ? undefined : sanitizeUntrustedText(job.description);
   const normalized = {
     ...job,
     title: compact(job.title),
     company: compact(job.company),
     location: compact(job.location || "Unknown"),
     tags: [...new Set(job.tags.map(compact).filter(Boolean))],
+    ...(description ? { description: description.text, description_truncated: description.truncated } : {}),
     ...(job.canonical_url ? { canonical_url: canonicalizeUrl(job.canonical_url) } : {}),
   };
   return normalizedJobSchema.parse({

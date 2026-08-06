@@ -60,6 +60,8 @@ export const normalizedJobSchema = z.object({
   location: z.string().trim().max(5_000).default("Unknown"),
   remote: z.boolean().optional(),
   description: z.string().trim().max(100_000).optional(),
+  /** True when the description was shortened to DESCRIPTION_LIMIT during normalization. */
+  description_truncated: z.boolean().optional(),
   employment_type: z.string().trim().max(80).optional(),
   date_posted: z.iso.date().optional(),
   canonical_url: httpUrlSchema.optional(),
@@ -68,6 +70,14 @@ export const normalizedJobSchema = z.object({
   signals: jobSignalsSchema.optional(),
   provenance: z.array(provenanceSchema).min(1).max(50),
 });
+
+/**
+ * Job descriptions are attacker-controlled text that ends up inside a tool-enabled model's
+ * context. A 100,000 character description across a 100 result page is a third of a million
+ * characters of untrusted input in one tool call, which is both a cost problem and the ideal
+ * carrier for an injected instruction. Nothing legitimate needs more than a few thousand.
+ */
+export const DESCRIPTION_LIMIT = 4_000;
 
 export type SearchQuery = z.infer<typeof searchQuerySchema>;
 export type JobProvenance = z.infer<typeof provenanceSchema>;

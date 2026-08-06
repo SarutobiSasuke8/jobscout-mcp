@@ -56,7 +56,9 @@ For a built local configuration, use `node` with the absolute path to `dist/src/
 python -m pip install python-jobspy
 ```
 
-Then set `JOBSCOUT_ENABLE_JOBSPY=true` and optionally `JOBSPY_PYTHON=python`. JobSpy's underlying sites can throttle, change, or impose their own terms. JobScout returns provider failure details without discarding results from other working sources.
+Then set `JOBSCOUT_ENABLE_JOBSPY=true` and optionally `JOBSPY_PYTHON=python`. JobScout returns provider failure details without discarding results from other working sources.
+
+> **Before you enable this.** JobSpy sends automated requests **from your own machine** to job boards. JobScout defaults to **Indeed only**. You can widen this with `JOBSPY_SITES` to include LinkedIn, Glassdoor, Google Jobs, ZipRecruiter, Bayt or Naukri, but LinkedIn, Glassdoor and Indeed each restrict automated access in their terms of use, and that decision is yours. `jobscout_list_sources` always reports the sites currently configured. See [PROVIDERS.md](PROVIDERS.md#which-sites-this-contacts).
 
 ## Provider environment variables
 
@@ -64,9 +66,11 @@ Then set `JOBSCOUT_ENABLE_JOBSPY=true` and optionally `JOBSPY_PYTHON=python`. Jo
 |---|---|---|
 | `JOBSCOUT_ENABLE_HIMALAYAS` | `false` | Enable public Himalayas MCP job search |
 | `HIMALAYAS_MCP_URL` | `https://mcp.himalayas.app/mcp` | Override the remote MCP endpoint |
-| `JOBSCOUT_ENABLE_JOBSPY` | `false` | Enable the Python JobSpy bridge |
+| `JOBSCOUT_ENABLE_JOBSPY` | `false` | Enable the Python JobSpy bridge. Sends automated requests from this machine to the sites in `JOBSPY_SITES` |
 | `JOBSPY_PYTHON` | `python` | Select the Python executable |
 | `JOBSPY_TIMEOUT_MS` | `45000` | Set subprocess timeout, bounded to 1–120 seconds |
+| `JOBSPY_SITES` | `indeed` | Comma-separated sites to query: `indeed`, `linkedin`, `glassdoor`, `google`, `zip_recruiter`, `bayt`, `naukri`. Unrecognised values are dropped |
+| `JOBSPY_COUNTRY` | _(unset)_ | Country scope for Indeed. Unset defers to the `python-jobspy` default |
 
 ## Verify the server
 
