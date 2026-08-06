@@ -10,13 +10,13 @@
 ## Run directly from GitHub
 
 ```bash
-npx -y github:SarutobiSasuke8/jobscout-mcp
+npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
 ```
 
 ### Codex
 
 ```bash
-codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npx -y github:SarutobiSasuke8/jobscout-mcp
+codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
 ```
 
 ### Claude Desktop or another JSON-configured MCP host
@@ -25,8 +25,8 @@ codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npx -y github:Sar
 {
   "mcpServers": {
     "jobscout": {
-      "command": "npx",
-      "args": ["-y", "github:SarutobiSasuke8/jobscout-mcp"],
+      "command": "npm",
+      "args": ["exec", "--yes", "--package=github:SarutobiSasuke8/jobscout-mcp", "--", "jobscout-mcp"],
       "env": {
         "JOBSCOUT_ENABLE_HIMALAYAS": "true"
       }
@@ -35,7 +35,7 @@ codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npx -y github:Sar
 }
 ```
 
-On Windows, use `npx.cmd` if the host does not resolve `npx` automatically. Cursor can use the same JSON server entry in its MCP configuration.
+On Windows, use `npm.cmd` if the host does not resolve `npm` automatically. A cold GitHub install can take tens of seconds; npm publication will make repeated setup faster and simpler. Cursor can use the same JSON server entry in its MCP configuration.
 
 ## Local development
 
