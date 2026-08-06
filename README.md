@@ -1,63 +1,98 @@
 # JobScout MCP
 
-A privacy-first, bring-your-own-connections MCP server for searching, normalizing and deduplicating jobs across multiple sources.
+![JobScout MCP social preview](docs/assets/jobscout-social-preview.png)
 
-JobScout MCP deliberately stops at trustworthy discovery. It does not score candidates, store CVs, contact employers or apply to jobs. Personalized career decisions belong in a separate client such as Career OS.
+[![CI](https://github.com/SarutobiSasuke8/jobscout-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/SarutobiSasuke8/jobscout-mcp/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D22.13-339933.svg)](package.json)
 
-## Current v0.1
+A privacy-first, bring-your-own-connections MCP server for multi-source job discovery. JobScout gives AI agents one normalized pool with provenance, deterministic deduplication, and specialist AI/Web3 signals.
 
-- `jobscout_search_jobs`: search all enabled providers and return one normalized, deduplicated pool
-- `jobscout_list_sources`: show provider configuration and health boundaries
-- `jobscout_deduplicate`: normalize and deduplicate supplied job records without making network calls
-- optional public Himalayas MCP adapter
-- optional JobSpy adapter using the clearly MIT-licensed `python-jobspy` package
-- strict schemas, source provenance and deterministic fingerprints
-- local stdio transport for Codex, Claude Desktop and other MCP clients
+JobScout deliberately stops at trustworthy discovery. It does not store CVs, rank candidates, contact employers, or apply to jobs.
 
-## Install
+## Why JobScout
+
+- Search enabled providers without making one source the whole market.
+- Keep discovery provenance separate from canonical employer application routes.
+- Continue with partial results when an individual provider fails.
+- Enforce remote and freshness filters after provider retrieval.
+- Classify AI, agentic and Web3 signals locally and deterministically.
+- Keep candidate identity and career policy in a private client such as Career OS.
+
+## MCP tools
+
+| Tool | Purpose | Network |
+|---|---|---|
+| `jobscout_list_sources` | Show configured providers, transports and coverage | No |
+| `jobscout_search_jobs` | Search, normalize, filter and deduplicate enabled sources | Provider-dependent |
+| `jobscout_classify_jobs` | Detect AI, agentic and Web3 signals in supplied jobs | No |
+| `jobscout_deduplicate` | Normalize and merge supplied JobScout records | No |
+
+## Quick start from GitHub
+
+Node.js 22.13 or newer is required. Until the npm package is published, MCP hosts can run the public GitHub package directly:
+
+```bash
+npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
+```
+
+Codex example with the public Himalayas adapter enabled:
+
+```bash
+codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
+```
+
+See [installation](docs/INSTALLATION.md) for Claude Desktop, Cursor, local development, JobSpy, and troubleshooting.
+
+## Providers
+
+Providers are disabled by default and failures are isolated.
+
+| Provider | Transport | Authentication | Notes |
+|---|---|---|---|
+| Himalayas | Remote MCP | Optional | Public job search; employer route should still be verified |
+| JobSpy | Local Python subprocess | None | Optional `python-jobspy`; availability and site terms vary |
+
+The provider contract supports future official ATS and specialist job-board adapters without coupling the core to any one vendor. See [provider documentation](docs/PROVIDERS.md).
+
+## AI and Web3 intelligence
+
+Every normalized job can include deterministic `signals` covering AI agents, inference, evals, safety, Web3 protocols, DeFi, DePIN, wallets, exchanges, developer infrastructure, gaming, and agentic commerce. Technology detection currently includes MCP, A2A, x402, LLMs, RAG, Ethereum, Base, and Solana.
+
+These are inspectable discovery signals, not opaque candidate scores. See [job intelligence](docs/JOB_INTELLIGENCE.md).
+
+## Optional agent operating guide
+
+[`agents/jobscout-operator.md`](agents/jobscout-operator.md) gives an MCP-capable agent a safe, reusable discovery workflow and output contract. It is intentionally one functional operator—not a bundled fictional team—and contains no private candidate profile or Career OS policy.
+
+## Trust and safety
+
+- Provider responses are untrusted and schema-validated.
+- Only HTTP(S) job URLs are accepted.
+- Remote and subprocess outputs have explicit size and time limits.
+- JobSpy is spawned without a shell and receives typed JSON over stdin.
+- No auto-apply, login automation, CAPTCHA bypass, credential capture, or proxy evasion.
+- Users remain responsible for provider terms, job freshness, location eligibility, and employer-route verification.
+
+Read [SECURITY.md](SECURITY.md) before enabling third-party providers.
+
+## Development
 
 ```bash
 npm install
 cp .env.example .env
 npm run check
-npm run dev
+npm run smoke:mcp
 ```
 
-Python JobSpy is optional:
+The protocol smoke test uses the official MCP Inspector. Provider contributions must include fixtures, failure behavior, provenance handling, and tests; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-```bash
-python -m pip install python-jobspy
-```
+## Release status
 
-Then set `JOBSCOUT_ENABLE_JOBSPY=true`. Remote providers are disabled by default.
+`v0.2.0` metadata, npm publication automation, and MCP Registry metadata are prepared. The npm package and registry entry are not live until the maintainer publishes a GitHub release with a configured `NPM_TOKEN`, then submits `server.json` with `mcp-publisher`.
 
-## Example MCP configuration
+## Prior art and licence
 
-```json
-{
-  "mcpServers": {
-    "jobscout": {
-      "command": "node",
-      "args": ["C:/path/to/jobscout-mcp/dist/src/stdio.js"],
-      "env": {
-        "JOBSCOUT_ENABLE_HIMALAYAS": "true"
-      }
-    }
-  }
-}
-```
+[JobSpy](https://github.com/speedyapply/JobSpy) is used as an optional MIT-licensed dependency rather than copied. [borgius/jobspy-mcp-server](https://github.com/borgius/jobspy-mcp-server) demonstrated demand for a JobSpy MCP wrapper; no source from it is copied here.
 
-## Provider philosophy
-
-Job boards and aggregators are discovery sources. Each result retains its discovery URL and an independently supplied canonical employer URL when available. Consumers must verify freshness, location and application routes before acting.
-
-See [architecture](docs/ARCHITECTURE.md), [provider contract](docs/PROVIDERS.md), [security](SECURITY.md) and [roadmap](ROADMAP.md).
-
-## Prior art and attribution
-
-- [JobSpy](https://github.com/speedyapply/JobSpy), MIT licensed, is used as an optional dependency rather than copied.
-- [borgius/jobspy-mcp-server](https://github.com/borgius/jobspy-mcp-server) demonstrated early demand for a JobSpy MCP wrapper. No source code from that repository is copied in v0.1 because its package metadata says MIT but the repository does not currently expose a root licence file.
-
-## Licence
-
-Apache-2.0. Third-party dependencies retain their own licences.
+JobScout MCP is Apache-2.0 licensed. Third-party dependencies retain their own licences.

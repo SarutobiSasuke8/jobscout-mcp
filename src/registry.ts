@@ -9,7 +9,13 @@ function enabled(value: string | undefined): boolean {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unknown provider failure";
+  const message = error instanceof Error ? error.message : "Unknown provider failure";
+  return message.replace(/[\r\n\t]+/gu, " ").slice(0, 500);
+}
+
+function isFreshEnough(datePosted: string | undefined, hoursOld: number | undefined, now = Date.now()): boolean {
+  if (!datePosted || hoursOld === undefined) return true;
+  return now - Date.parse(`${datePosted}T23:59:59.999Z`) <= hoursOld * 60 * 60 * 1_000;
 }
 
 export class ProviderRegistry {
@@ -20,6 +26,8 @@ export class ProviderRegistry {
   }
 
   async search(query: SearchQuery): Promise<SearchResult> {
+    const knownSources = new Set(this.providers.map((provider) => provider.status().id));
+    const unknownSources = (query.sources ?? []).filter((source) => !knownSources.has(source));
     const selected = this.providers.filter((provider) => {
       const status = provider.status();
       return status.enabled && (!query.sources || query.sources.includes(status.id));
@@ -36,9 +44,13 @@ export class ProviderRegistry {
       else failures.push({ provider, error: errorMessage(result.reason) });
     }
     return {
-      jobs: deduplicateJobs(jobs).slice(0, query.limit),
+      jobs: deduplicateJobs(jobs)
+        .filter((job) => !query.remote_only || job.remote === true)
+        .filter((job) => isFreshEnough(job.date_posted, query.hours_old))
+        .slice(0, query.limit),
       failures,
       providers_queried: selected.map((provider) => provider.status().id),
+      unknown_sources: unknownSources,
     };
   }
 }
@@ -52,7 +64,7 @@ export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.
     new JobSpyProvider(
       enabled(environment.JOBSCOUT_ENABLE_JOBSPY),
       environment.JOBSPY_PYTHON ?? "python",
-      Number(environment.JOBSPY_TIMEOUT_MS ?? 45_000),
+      Math.max(1_000, Math.min(120_000, Number(environment.JOBSPY_TIMEOUT_MS ?? 45_000) || 45_000)),
     ),
   ]);
 }

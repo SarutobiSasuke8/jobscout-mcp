@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { deduplicateJobs, normalizeJob } from "../src/core.js";
+import { canonicalizeUrl, deduplicateJobs, normalizeJob } from "../src/core.js";
 
 const capturedAt = "2026-08-05T12:00:00.000Z";
 
@@ -31,13 +31,13 @@ void test("deduplicates normalized company, title and location", () => {
 });
 
 void test("canonical URLs override text identity", () => {
-  const url = "https://jobs.example.com/requisitions/42";
+  const url = "https://jobs.example.com/requisitions/42?utm_source=board";
   const jobs = deduplicateJobs([
     normalizeJob({
       title: "Partner Lead",
       company: "Example",
       location: "Ireland",
-      canonical_url: url,
+      canonical_url: "https://jobs.example.com/requisitions/42#apply",
       tags: [],
       provenance: [{ provider: "one", captured_at: capturedAt }],
     }),
@@ -51,4 +51,12 @@ void test("canonical URLs override text identity", () => {
     }),
   ]);
   assert.equal(jobs.length, 1);
+  assert.equal(jobs[0]?.canonical_url, "https://jobs.example.com/requisitions/42");
+});
+
+void test("canonicalizes tracking parameters but preserves meaningful query parameters", () => {
+  assert.equal(
+    canonicalizeUrl("https://jobs.example.com/search/?role=partner&utm_medium=social#top"),
+    "https://jobs.example.com/search?role=partner",
+  );
 });

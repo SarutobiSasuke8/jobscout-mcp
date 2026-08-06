@@ -28,3 +28,18 @@ void test("returns partial results when one provider fails", async () => {
   assert.equal(result.failures.length, 1);
   assert.equal(result.failures[0]?.provider, "failing");
 });
+
+void test("reports unknown requested sources", async () => {
+  const result = await new ProviderRegistry([working]).search({
+    query: "sales",
+    remote_only: false,
+    limit: 25,
+    sources: ["working", "missing"],
+  });
+  assert.deepEqual(result.unknown_sources, ["missing"]);
+});
+
+void test("enforces remote-only filters after provider retrieval", async () => {
+  const result = await new ProviderRegistry([working]).search({ query: "sales", remote_only: true, limit: 25 });
+  assert.equal(result.jobs.length, 0);
+});

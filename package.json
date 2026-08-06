@@ -1,6 +1,6 @@
 {
   "name": "@sarutobi/jobscout-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A privacy-first, multi-source MCP server for job discovery, normalization, deduplication, and source provenance.",
   "license": "Apache-2.0",
   "author": "Alexei Udall",
@@ -15,6 +15,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "mcpName": "io.github.SarutobiSasuke8/jobscout-mcp",
   "type": "module",
   "engines": {
     "node": ">=22.13"
@@ -22,6 +23,8 @@
   "bin": {
     "jobscout-mcp": "dist/src/stdio.js"
   },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
     "./core": "./dist/src/core.js",
@@ -32,7 +35,8 @@
     "python/jobspy_bridge.py",
     "README.md",
     "LICENSE",
-    "NOTICE"
+    "NOTICE",
+    "server.json"
   ],
   "scripts": {
     "dev": "node --env-file-if-exists=.env --import tsx src/stdio.ts",
@@ -42,6 +46,8 @@
     "lint": "eslint .",
     "test": "npm run build && node --test \"dist/test/*.test.js\"",
     "check": "npm run typecheck && npm run lint && npm test",
+    "pack:check": "npm pack --dry-run",
+    "smoke:mcp": "npx -y @modelcontextprotocol/inspector@2.1.0 --cli node dist/src/stdio.js --method tools/list",
     "prepare": "npm run build"
   },
   "dependencies": {
@@ -55,5 +61,13 @@
     "tsx": "4.20.6",
     "typescript": "5.9.3",
     "typescript-eslint": "8.66.0"
-  }
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "job-search",
+    "ai-agents",
+    "web3",
+    "remote-jobs"
+  ]
 }

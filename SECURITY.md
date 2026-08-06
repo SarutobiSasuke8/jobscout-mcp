@@ -6,8 +6,10 @@ JobScout MCP treats provider responses, descriptions, URLs and search terms as u
 
 - Providers are disabled unless explicitly enabled.
 - The JobSpy bridge uses `spawn` without a shell and accepts JSON through stdin.
+- Job URLs are restricted to HTTP(S), and canonical URLs remove common tracking parameters before fingerprinting.
+- Remote responses, subprocess output, provider errors and execution time are bounded.
 - Secrets must come from process environment variables and must never be committed.
 - Results preserve provenance and do not imply that an application URL is canonical unless a provider supplied it as such.
 - The server contains no auto-apply, messaging, arbitrary URL-fetch, arbitrary command, filesystem-write or browser-login tool.
 
-Report vulnerabilities through a private GitHub security advisory after the repository is published.
+Report vulnerabilities through a private GitHub security advisory. Do not include credentials, private candidate data, or active exploit details in a public issue.

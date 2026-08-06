@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { normalizedJobSchema } from "./types.js";
+import { classifyJob } from "./taxonomy.js";
 
 import type { NormalizedJob } from "./types.js";
 
@@ -12,8 +13,21 @@ function identityPart(value: string): string {
   return compact(value).toLocaleLowerCase("en").replace(/[^a-z0-9]+/gu, " ").trim();
 }
 
+const trackingParameters = new Set(["fbclid", "gclid", "ref", "referrer", "source", "utm_campaign", "utm_content", "utm_medium", "utm_source", "utm_term"]);
+
+export function canonicalizeUrl(value: string): string {
+  const url = new URL(value);
+  url.hash = "";
+  for (const key of [...url.searchParams.keys()]) {
+    if (trackingParameters.has(key.toLocaleLowerCase("en"))) url.searchParams.delete(key);
+  }
+  url.searchParams.sort();
+  if (url.pathname !== "/") url.pathname = url.pathname.replace(/\/+$/u, "");
+  return url.toString();
+}
+
 function canonicalKey(job: Omit<NormalizedJob, "id"> | NormalizedJob): string {
-  if (job.canonical_url) return `url:${job.canonical_url.replace(/\/$/u, "")}`;
+  if (job.canonical_url) return `url:${canonicalizeUrl(job.canonical_url)}`;
   return ["job", identityPart(job.company), identityPart(job.title), identityPart(job.location)].join(":");
 }
 
@@ -22,13 +36,18 @@ export function fingerprint(job: Omit<NormalizedJob, "id"> | NormalizedJob): str
 }
 
 export function normalizeJob(job: Omit<NormalizedJob, "id"> & { id?: string }): NormalizedJob {
-  return normalizedJobSchema.parse({
+  const normalized = {
     ...job,
-    id: job.id ?? fingerprint(job),
     title: compact(job.title),
     company: compact(job.company),
     location: compact(job.location || "Unknown"),
     tags: [...new Set(job.tags.map(compact).filter(Boolean))],
+    ...(job.canonical_url ? { canonical_url: canonicalizeUrl(job.canonical_url) } : {}),
+  };
+  return normalizedJobSchema.parse({
+    ...normalized,
+    id: fingerprint(normalized),
+    signals: classifyJob(normalized),
   });
 }
 

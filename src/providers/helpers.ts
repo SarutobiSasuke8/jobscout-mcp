@@ -33,13 +33,23 @@ export function booleanValue(source: UnknownRecord, keys: string[]): boolean | u
   return undefined;
 }
 
+function httpUrl(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function mapUnknownJob(provider: string, source: UnknownRecord): NormalizedJob | undefined {
   const title = textValue(source, ["title", "job_title", "name"]);
   const company = textValue(source, ["company", "company_name", "organization"]);
   if (!title || !company) return undefined;
 
-  const discoveryUrl = textValue(source, ["url", "job_url", "listing_url"]);
-  const canonicalUrl = textValue(source, ["canonical_url", "apply_url", "job_url_direct"]);
+  const discoveryUrl = httpUrl(textValue(source, ["url", "job_url", "listing_url"]));
+  const canonicalUrl = httpUrl(textValue(source, ["canonical_url", "apply_url", "job_url_direct"]));
   const sourceJobId = textValue(source, ["id", "job_id", "source_job_id"]);
   const datePosted = textValue(source, ["date_posted", "posted_at", "published_at"]);
   const salaryMin = numberValue(source, ["min_amount", "salary_min", "min_salary"]);
@@ -51,7 +61,8 @@ export function mapUnknownJob(provider: string, source: UnknownRecord): Normaliz
     ? salaryInterval as "hour" | "day" | "week" | "month" | "year" | "unknown"
     : undefined;
 
-  return normalizeJob({
+  try {
+    return normalizeJob({
     title,
     company,
     location: textValue(source, ["location", "job_location", "city"]) ?? "Unknown",
@@ -75,7 +86,10 @@ export function mapUnknownJob(provider: string, source: UnknownRecord): Normaliz
       ...(sourceJobId ? { source_job_id: sourceJobId } : {}),
       captured_at: new Date().toISOString(),
     }],
-  });
+    });
+  } catch {
+    return undefined;
+  }
 }
 
 export function findJobRecords(value: unknown): UnknownRecord[] {

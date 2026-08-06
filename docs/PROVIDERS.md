@@ -8,8 +8,11 @@ Each provider implements:
 - `search(query)` returning normalized candidate records
 - bounded timeout and useful failure messages
 - documented authentication and provenance behavior
+- transport, coverage and optional dependency metadata
 
 Provider failures are returned alongside successful results. One provider outage must reduce coverage rather than fail the entire blended search.
+
+When callers explicitly request unknown provider identifiers, JobScout returns them under `unknown_sources`. Provider results are treated as untrusted: invalid jobs are skipped, URLs must use HTTP(S), response sizes are bounded, and remote/freshness constraints are enforced again after retrieval.
 
 ## Himalayas
 
