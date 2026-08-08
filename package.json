@@ -1,5 +1,5 @@
 {
-  "name": "@sarutobi/jobscout-mcp",
+  "name": "@sarutobisasuke/jobscout-mcp",
   "version": "0.2.0",
   "description": "A privacy-first, multi-source MCP server for job discovery, normalization, deduplication, and source provenance.",
   "license": "Apache-2.0",

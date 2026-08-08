@@ -7,16 +7,16 @@
 - network access only for the providers you explicitly enable
 - Python and `python-jobspy` only when using JobSpy
 
-## Run directly from GitHub
+## Run from npm
 
 ```bash
-npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
+npm exec --yes --package=@sarutobisasuke/jobscout-mcp -- jobscout-mcp
 ```
 
 ### Codex
 
 ```bash
-codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
+codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=@sarutobisasuke/jobscout-mcp -- jobscout-mcp
 ```
 
 ### Claude Desktop or another JSON-configured MCP host
@@ -26,7 +26,7 @@ codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --
   "mcpServers": {
     "jobscout": {
       "command": "npm",
-      "args": ["exec", "--yes", "--package=github:SarutobiSasuke8/jobscout-mcp", "--", "jobscout-mcp"],
+      "args": ["exec", "--yes", "--package=@sarutobisasuke/jobscout-mcp", "--", "jobscout-mcp"],
       "env": {
         "JOBSCOUT_ENABLE_HIMALAYAS": "true"
       }
@@ -35,7 +35,15 @@ codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --
 }
 ```
 
-On Windows, use `npm.cmd` if the host does not resolve `npm` automatically. A cold GitHub install can take tens of seconds; npm publication will make repeated setup faster and simpler. Cursor can use the same JSON server entry in its MCP configuration.
+## Run directly from GitHub
+
+Useful for pinning to a commit or testing an unreleased branch instead of the published package:
+
+```bash
+npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
+```
+
+On Windows, use `npm.cmd` if the host does not resolve `npm` automatically. A cold GitHub install can take tens of seconds; the npm package above is faster for repeated setup. Cursor can use the same JSON server entry in its MCP configuration.
 
 ## Local development
 
