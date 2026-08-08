@@ -33,13 +33,13 @@ JobScout deliberately stops at trustworthy discovery. It does not store CVs, ran
 Node.js 22.13 or newer is required.
 
 ```bash
-npm exec --yes --package=@sarutobisasuke/jobscout-mcp -- jobscout-mcp
+npm exec --yes --package=@sarutobi-sasuke/jobscout-mcp -- jobscout-mcp
 ```
 
 Codex example with the public Himalayas adapter enabled:
 
 ```bash
-codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=@sarutobisasuke/jobscout-mcp -- jobscout-mcp
+codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=@sarutobi-sasuke/jobscout-mcp -- jobscout-mcp
 ```
 
 MCP hosts can also run the package straight from GitHub, which is useful for pinning to a commit or testing an unreleased branch:

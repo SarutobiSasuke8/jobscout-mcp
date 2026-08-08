@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "@sarutobisasuke/jobscout-mcp",
+      "identifier": "@sarutobi-sasuke/jobscout-mcp",
       "version": "0.2.0",
       "runtimeHint": "npx",
       "transport": {

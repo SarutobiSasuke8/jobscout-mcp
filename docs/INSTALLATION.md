@@ -10,13 +10,13 @@
 ## Run from npm
 
 ```bash
-npm exec --yes --package=@sarutobisasuke/jobscout-mcp -- jobscout-mcp
+npm exec --yes --package=@sarutobi-sasuke/jobscout-mcp -- jobscout-mcp
 ```
 
 ### Codex
 
 ```bash
-codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=@sarutobisasuke/jobscout-mcp -- jobscout-mcp
+codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=@sarutobi-sasuke/jobscout-mcp -- jobscout-mcp
 ```
 
 ### Claude Desktop or another JSON-configured MCP host
@@ -26,7 +26,7 @@ codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --
   "mcpServers": {
     "jobscout": {
       "command": "npm",
-      "args": ["exec", "--yes", "--package=@sarutobisasuke/jobscout-mcp", "--", "jobscout-mcp"],
+      "args": ["exec", "--yes", "--package=@sarutobi-sasuke/jobscout-mcp", "--", "jobscout-mcp"],
       "env": {
         "JOBSCOUT_ENABLE_HIMALAYAS": "true"
       }
