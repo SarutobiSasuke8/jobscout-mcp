@@ -43,6 +43,13 @@ jobs:
             exit 1
           fi
           echo "Tag $GITHUB_REF_NAME matches package.json version $PKG"
-      - run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Trusted publishing (OIDC), configured on npmjs.com under the package's Settings ->
+      # Trusted Publisher: GitHub Actions, repo SarutobiSasuke8/jobscout-mcp, workflow
+      # release.yml, environment left blank. No token: npm exchanges the id-token this
+      # workflow already requests (see permissions above) for a short-lived publish grant.
+      # Provenance attestation is automatic once trusted publishing is active, so --provenance
+      # is no longer needed. This replaces the NPM_TOKEN secret, which broke silently after the
+      # npm account rename (the token stayed scoped to the pre-rename name) and would keep
+      # breaking on every future rename or token expiry. Delete the NPM_TOKEN repo secret once
+      # this has published successfully once.
+      - run: npm publish --access public
