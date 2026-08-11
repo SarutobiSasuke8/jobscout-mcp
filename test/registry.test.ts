@@ -8,18 +8,26 @@ import type { JobProvider } from "../src/types.js";
 
 const working: JobProvider = {
   status: () => ({ id: "working", label: "Working", enabled: true, authentication: "none", notes: "fixture" }),
-  search: async () => [normalizeJob({
-    title: "Account Executive",
-    company: "Example",
-    location: "Ireland",
-    tags: [],
-    provenance: [{ provider: "working", captured_at: "2026-08-05T12:00:00.000Z" }],
-  })],
+  search: async () => ({
+    jobs: [normalizeJob({
+      title: "Account Executive",
+      company: "Example",
+      location: "Ireland",
+      tags: [],
+      provenance: [{ provider: "working", captured_at: "2026-08-05T12:00:00.000Z" }],
+    })],
+    records_rejected: 2,
+  }),
 };
 
 const failing: JobProvider = {
   status: () => ({ id: "failing", label: "Failing", enabled: true, authentication: "none", notes: "fixture" }),
   search: async () => { throw new Error("source unavailable"); },
+};
+
+const disabled: JobProvider = {
+  status: () => ({ id: "disabled", label: "Disabled", enabled: false, authentication: "none", notes: "fixture" }),
+  search: async () => ({ jobs: [], records_rejected: 0 }),
 };
 
 void test("returns partial results when one provider fails", async () => {
@@ -57,4 +65,26 @@ void test("JobSpy site resolution accepts a documented list and drops unknown va
   assert.deepEqual(resolveJobSpySites("indeed,notareal site,google"), ["indeed", "google"]);
   assert.deepEqual(resolveJobSpySites("INDEED,indeed"), ["indeed"]);
   assert.deepEqual(resolveJobSpySites("nothing recognisable"), ["indeed"]);
+});
+
+// Honest-results contract (v0.2.1). A fresh install has zero enabled providers; without an
+// explicit setup_required flag the empty success reads as "no jobs matched", which is false.
+void test("a search with zero enabled providers says setup is required", async () => {
+  const result = await new ProviderRegistry([disabled]).search({ query: "sales", remote_only: false, limit: 25 });
+  assert.equal(result.setup_required, true);
+  assert.deepEqual(result.providers_disabled, ["disabled"]);
+  assert.match(result.message ?? "", /No providers are enabled/u);
+  assert.equal(result.jobs.length, 0);
+});
+
+void test("a search with an enabled provider does not raise setup_required", async () => {
+  const result = await new ProviderRegistry([working, disabled]).search({ query: "sales", remote_only: false, limit: 25 });
+  assert.equal(result.setup_required, undefined);
+  assert.deepEqual(result.providers_disabled, ["disabled"]);
+});
+
+void test("rejected and undated records are counted, not silently dropped", async () => {
+  const result = await new ProviderRegistry([working]).search({ query: "sales", remote_only: false, limit: 25 });
+  assert.equal(result.records_rejected, 2, "provider-reported rejections must surface");
+  assert.equal(result.undated_records, 1, "the fixture job has no date_posted");
 });

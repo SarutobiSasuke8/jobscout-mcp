@@ -16,7 +16,7 @@ void test("parses the live Himalayas MCP markdown result shape", () => {
 🔗 **Apply on Himalayas:** https://himalayas.app/companies/example/jobs/partnerships-manager?utm_source=mcp
 🏢 **Company Page:** https://himalayas.app/companies/example
 `;
-  const jobs = parseHimalayasMarkdown(markdown);
+  const { jobs } = parseHimalayasMarkdown(markdown);
   assert.equal(jobs.length, 1);
   assert.equal(jobs[0]?.title, "Partnerships Manager");
   assert.equal(jobs[0]?.company, "Example AI");

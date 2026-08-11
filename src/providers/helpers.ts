@@ -1,6 +1,6 @@
 import { normalizeJob } from "../core.js";
 
-import type { NormalizedJob } from "../types.js";
+import type { NormalizedJob, ProviderSearchResult } from "../types.js";
 
 export type UnknownRecord = Record<string, unknown>;
 
@@ -31,6 +31,26 @@ export function booleanValue(source: UnknownRecord, keys: string[]): boolean | u
     if (typeof value === "boolean") return value;
   }
   return undefined;
+}
+
+/**
+ * Collect short string entries from list-shaped fields. Providers expose these as tags,
+ * categories or department names; they are the classifier's highest-precision input because
+ * a board tag is a deliberate label, not incidental prose. A comma-separated string is
+ * accepted too, since some sources flatten their lists.
+ */
+export function stringArrayValue(source: UnknownRecord, keys: string[]): string[] {
+  const collected: string[] = [];
+  for (const key of keys) {
+    const value = source[key];
+    const items = Array.isArray(value)
+      ? value
+      : typeof value === "string" && value.includes(",") ? value.split(",") : [];
+    for (const item of items) {
+      if (typeof item === "string" && item.trim() && item.trim().length <= 80) collected.push(item.trim());
+    }
+  }
+  return [...new Set(collected)].slice(0, 100);
 }
 
 function httpUrl(value: string | undefined): string | undefined {
@@ -79,7 +99,7 @@ export function mapUnknownJob(provider: string, source: UnknownRecord): Normaliz
         ...(interval ? { interval } : {}),
       },
     } : {}),
-    tags: [],
+    tags: stringArrayValue(source, ["tags", "keywords", "categories", "skills", "departments"]),
     provenance: [{
       provider,
       ...(discoveryUrl ? { discovery_url: discoveryUrl } : {}),
@@ -90,6 +110,18 @@ export function mapUnknownJob(provider: string, source: UnknownRecord): Normaliz
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Map raw source records into normalized jobs, counting what validation drops instead of
+ * silently discarding it. Every provider ends its search with this exact step, so the count
+ * lives here rather than being re-implemented (or forgotten) per provider.
+ */
+export function mapJobRecords(provider: string, records: UnknownRecord[], limit: number): ProviderSearchResult {
+  const jobs = records
+    .map((item) => mapUnknownJob(provider, item))
+    .filter((job): job is NormalizedJob => job !== undefined);
+  return { jobs: jobs.slice(0, limit), records_rejected: records.length - jobs.length };
 }
 
 export function findJobRecords(value: unknown): UnknownRecord[] {

@@ -2,9 +2,9 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { findJobRecords, mapUnknownJob } from "./helpers.js";
+import { findJobRecords, mapJobRecords } from "./helpers.js";
 
-import type { JobProvider, NormalizedJob, ProviderStatus, SearchQuery } from "../types.js";
+import type { JobProvider, ProviderSearchResult, ProviderStatus, SearchQuery } from "../types.js";
 
 export class JobSpyProvider implements JobProvider {
   constructor(
@@ -31,8 +31,8 @@ export class JobSpyProvider implements JobProvider {
     };
   }
 
-  async search(query: SearchQuery): Promise<NormalizedJob[]> {
-    if (!this.enabled) return [];
+  async search(query: SearchQuery): Promise<ProviderSearchResult> {
+    if (!this.enabled) return { jobs: [], records_rejected: 0 };
     const bridgeCandidates = [
       new URL("../../python/jobspy_bridge.py", import.meta.url),
       new URL("../../../python/jobspy_bridge.py", import.meta.url),
@@ -81,9 +81,6 @@ export class JobSpyProvider implements JobProvider {
     });
 
     const payload = JSON.parse(output) as unknown;
-    return findJobRecords(payload)
-      .map((item) => mapUnknownJob("jobspy", item))
-      .filter((job): job is NormalizedJob => job !== undefined)
-      .slice(0, query.limit);
+    return mapJobRecords("jobspy", findJobRecords(payload), query.limit);
   }
 }

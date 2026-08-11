@@ -44,31 +44,50 @@ export class ProviderRegistry {
   }
 
   async search(query: SearchQuery): Promise<SearchResult> {
-    const knownSources = new Set(this.providers.map((provider) => provider.status().id));
+    const statuses = this.providers.map((provider) => provider.status());
+    const knownSources = new Set(statuses.map((status) => status.id));
     const unknownSources = (query.sources ?? []).filter((source) => !knownSources.has(source));
+    const providersDisabled = statuses.filter((status) => !status.enabled).map((status) => status.id);
     const selected = this.providers.filter((provider) => {
       const status = provider.status();
       return status.enabled && (!query.sources || query.sources.includes(status.id));
     });
     const settled = await Promise.allSettled(selected.map(async (provider) => ({
       provider: provider.status().id,
-      jobs: await provider.search(query),
+      result: await provider.search(query),
     })));
     const failures: ProviderFailure[] = [];
     const jobs = [];
+    let recordsRejected = 0;
     for (const [index, result] of settled.entries()) {
       const provider = selected[index]?.status().id ?? "unknown";
-      if (result.status === "fulfilled") jobs.push(...result.value.jobs);
-      else failures.push({ provider, error: errorMessage(result.reason) });
+      if (result.status === "fulfilled") {
+        jobs.push(...result.value.result.jobs);
+        recordsRejected += result.value.result.records_rejected;
+      } else failures.push({ provider, error: errorMessage(result.reason) });
     }
+    const finalJobs = deduplicateJobs(jobs)
+      .filter((job) => !query.remote_only || job.remote === true)
+      .filter((job) => isFreshEnough(job.date_posted, query.hours_old))
+      .slice(0, query.limit);
+    // A search against zero enabled providers must say so. Without the flag, a fresh install
+    // returns an empty success and the calling agent tells its user "no jobs matched" — false,
+    // because nothing was searched. This was the first thing a first-run test tripped over.
+    const setupRequired = selected.length === 0;
     return {
-      jobs: deduplicateJobs(jobs)
-        .filter((job) => !query.remote_only || job.remote === true)
-        .filter((job) => isFreshEnough(job.date_posted, query.hours_old))
-        .slice(0, query.limit),
+      jobs: finalJobs,
       failures,
       providers_queried: selected.map((provider) => provider.status().id),
       unknown_sources: unknownSources,
+      providers_disabled: providersDisabled,
+      records_rejected: recordsRejected,
+      undated_records: finalJobs.filter((job) => !job.date_posted).length,
+      ...(setupRequired ? {
+        setup_required: true,
+        message: providersDisabled.length
+          ? `No providers are enabled, so nothing was searched. Available providers: ${providersDisabled.join(", ")}. Enable at least one (for example JOBSCOUT_ENABLE_HIMALAYAS=true) and retry; jobscout_list_sources explains what each provider contacts.`
+          : "No providers matched this request, so nothing was searched. Call jobscout_list_sources to see what is configured.",
+      } : {}),
     };
   }
 }

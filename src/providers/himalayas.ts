@@ -1,6 +1,6 @@
-import { findJobRecords, mapUnknownJob, record } from "./helpers.js";
+import { findJobRecords, mapJobRecords, mapUnknownJob, record } from "./helpers.js";
 
-import type { JobProvider, NormalizedJob, ProviderStatus, SearchQuery } from "../types.js";
+import type { JobProvider, NormalizedJob, ProviderSearchResult, ProviderStatus, SearchQuery } from "../types.js";
 
 interface RpcResponse {
   result?: unknown;
@@ -21,8 +21,9 @@ function parseRpcResponse(body: string, contentType: string): RpcResponse {
   return JSON.parse(body) as RpcResponse;
 }
 
-export function parseHimalayasMarkdown(markdown: string): NormalizedJob[] {
-  return markdown.split(/\n\s*---\s*\n/gu).map((block) => {
+export function parseHimalayasMarkdown(markdown: string): ProviderSearchResult {
+  const blocks = markdown.split(/\n\s*---\s*\n/gu);
+  const jobs = blocks.map((block) => {
     const title = block.match(/🚀\s+\*\*(.+?)\*\*/u)?.[1]?.trim();
     const company = block.match(/🏢\s+(.+?)(?:\s+✅)?\s*$/mu)?.[1]?.trim();
     const discoveryUrl = block.match(/Apply on Himalayas:\*\*\s+(https?:\/\/\S+)/u)?.[1];
@@ -46,6 +47,9 @@ export function parseHimalayasMarkdown(markdown: string): NormalizedJob[] {
       } : {}),
     });
   }).filter((job): job is NormalizedJob => job !== undefined);
+  // Blocks that failed to parse are counted, not swallowed: an upstream format change that
+  // breaks this parser should surface as a rejection count, not as quietly thinner results.
+  return { jobs, records_rejected: blocks.filter((block) => block.trim()).length - jobs.length };
 }
 
 export class HimalayasProvider implements JobProvider {
@@ -91,8 +95,8 @@ export class HimalayasProvider implements JobProvider {
     return { response: parsed, ...(returnedSession ? { sessionId: returnedSession } : {}) };
   }
 
-  async search(query: SearchQuery): Promise<NormalizedJob[]> {
-    if (!this.enabled) return [];
+  async search(query: SearchQuery): Promise<ProviderSearchResult> {
+    if (!this.enabled) return { jobs: [], records_rejected: 0 };
     const initialized = await this.rpc({
       jsonrpc: "2.0",
       id: 1,
@@ -100,7 +104,7 @@ export class HimalayasProvider implements JobProvider {
       params: {
         protocolVersion: "2025-06-18",
         capabilities: {},
-        clientInfo: { name: "jobscout-mcp", version: "0.2.0" },
+        clientInfo: { name: "jobscout-mcp", version: "0.2.1" },
       },
     });
 
@@ -128,11 +132,11 @@ export class HimalayasProvider implements JobProvider {
     const textBlock = content.map(record).find((item) => item?.type === "text" && typeof item.text === "string");
     if (!findJobRecords(payload).length && typeof textBlock?.text === "string") {
       try { payload = JSON.parse(textBlock.text) as unknown; }
-      catch { return parseHimalayasMarkdown(textBlock.text).slice(0, query.limit); }
+      catch {
+        const parsed = parseHimalayasMarkdown(textBlock.text);
+        return { jobs: parsed.jobs.slice(0, query.limit), records_rejected: parsed.records_rejected };
+      }
     }
-    return findJobRecords(payload)
-      .map((item) => mapUnknownJob("himalayas", item))
-      .filter((job): job is NormalizedJob => job !== undefined)
-      .slice(0, query.limit);
+    return mapJobRecords("himalayas", findJobRecords(payload), query.limit);
   }
 }
