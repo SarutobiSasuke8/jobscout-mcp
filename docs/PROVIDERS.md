@@ -12,7 +12,16 @@ Each provider implements:
 
 Provider failures are returned alongside successful results. One provider outage must reduce coverage rather than fail the entire blended search.
 
-When callers explicitly request unknown provider identifiers, JobScout returns them under `unknown_sources`. Provider results are treated as untrusted: invalid jobs are skipped, URLs must use HTTP(S), response sizes are bounded, and remote/freshness constraints are enforced again after retrieval.
+When callers explicitly request unknown provider identifiers, JobScout returns them under `unknown_sources`. Provider results are treated as untrusted: invalid jobs are rejected (and counted in `records_rejected`, never silently dropped), URLs must use HTTP(S), response sizes are bounded, and remote/freshness constraints are enforced again after retrieval. A search against zero enabled providers reports `setup_required: true` rather than posing as an empty market.
+
+## URL semantics
+
+Every record can carry two different kinds of link, and consumers should not conflate them:
+
+- `canonical_url` (top level): the employer application route, present only when the source exposes one (for example python-jobspy's `job_url_direct`). This is the link to prefer when applying.
+- `provenance[].discovery_url`: where the record was found — a listing or aggregator page. Always an audit trail, not proof the employer endorsed the listing.
+
+`jobscout_briefing` applies the fallback rule for you (`canonical_url`, else first `discovery_url`) and labels which kind it chose via `url_kind`, so downstream briefings never drop the link or present a discovery page as an apply route.
 
 ## Himalayas
 

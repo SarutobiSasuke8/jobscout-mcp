@@ -27,6 +27,9 @@ JobScout deliberately stops at trustworthy discovery. It does not store CVs, ran
 | `jobscout_search_jobs` | Search, normalize, filter and deduplicate enabled sources | Provider-dependent |
 | `jobscout_classify_jobs` | Detect AI, agentic and Web3 signals in supplied jobs | No |
 | `jobscout_deduplicate` | Normalize and merge supplied JobScout records | No |
+| `jobscout_briefing` | Project records into briefing-ready entries with a compact `one_line` and best link | No |
+
+Two MCP prompts guide first-run use without the server storing anything: `jobscout_setup` walks through enabling providers and what each one contacts; `jobscout_find_jobs` gathers role, location and remote preference per search. A search run with zero enabled providers returns `setup_required: true` with guidance instead of a misleading empty result, and results report `providers_disabled`, `records_rejected` and `undated_records` so thin results are always explained.
 
 ## Quick start
 
@@ -95,7 +98,7 @@ The protocol smoke test uses the official MCP Inspector. Provider contributions 
 
 ## Release status
 
-`v0.2.0` metadata, npm publication automation, and MCP Registry metadata are prepared. The npm package and registry entry are not live until the maintainer publishes a GitHub release with a configured `NPM_TOKEN`, then submits `server.json` with `mcp-publisher`.
+Live on npm as [`@sarutobi-sasuke/jobscout-mcp`](https://www.npmjs.com/package/@sarutobi-sasuke/jobscout-mcp) and on the official MCP Registry as `io.github.SarutobiSasuke8/jobscout-mcp`. Releases are tagged `vX.Y.Z` on GitHub; CI publishes to npm with provenance.
 
 ## Prior art and licence
 

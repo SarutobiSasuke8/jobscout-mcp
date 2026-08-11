@@ -101,9 +101,20 @@ export interface ProviderStatus {
   notes: string;
 }
 
+/**
+ * What a provider hands back to the registry. `records_rejected` counts source records that
+ * failed validation and were dropped during normalization. The Operator guide promises that
+ * provider failures are never silently swallowed; without this count, schema-invalid records
+ * vanished with no trace and that promise was false.
+ */
+export interface ProviderSearchResult {
+  jobs: NormalizedJob[];
+  records_rejected: number;
+}
+
 export interface JobProvider {
   status(): ProviderStatus;
-  search(query: SearchQuery): Promise<NormalizedJob[]>;
+  search(query: SearchQuery): Promise<ProviderSearchResult>;
 }
 
 export interface ProviderFailure {
@@ -115,5 +126,19 @@ export interface SearchResult {
   jobs: NormalizedJob[];
   failures: ProviderFailure[];
   providers_queried: string[];
+  /** Enabled-but-unknown source ids the caller asked for. */
   unknown_sources: string[];
+  /** Configured providers that are currently disabled. Explains thin results honestly. */
+  providers_disabled: string[];
+  /** Source records dropped during validation across all queried providers. */
+  records_rejected: number;
+  /** Returned jobs carrying no date_posted; freshness filters cannot vouch for these. */
+  undated_records: number;
+  /**
+   * True when the search ran against zero enabled providers. Without this flag a fresh
+   * install returns an empty success and the calling agent tells its user "no jobs matched",
+   * which is false: nothing was searched. `message` carries the setup guidance.
+   */
+  setup_required?: boolean;
+  message?: string;
 }
