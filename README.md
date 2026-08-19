@@ -60,6 +60,7 @@ Providers are disabled by default and failures are isolated.
 | Provider | Transport | Authentication | Notes |
 |---|---|---|---|
 | Himalayas | Remote MCP | Optional | Public job search; employer route should still be verified |
+| We Work Remotely | Public RSS feed | None | No keyword search endpoint; results filtered client-side |
 | JobSpy | Local Python subprocess | None | Optional `python-jobspy`; availability and site terms vary |
 
 The provider contract supports future official ATS and specialist job-board adapters without coupling the core to any one vendor. See [provider documentation](docs/PROVIDERS.md).
