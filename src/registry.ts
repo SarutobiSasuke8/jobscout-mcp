@@ -1,6 +1,6 @@
 import { deduplicateJobs } from "./core.js";
 import { HimalayasProvider } from "./providers/himalayas.js";
-import { LennysJobsProvider, defaultSiteUrl } from "./providers/lennysjobs.js";
+import { LennysJobsProvider, defaultEndpoint, defaultPartnerId, defaultSiteUrl } from "./providers/lennysjobs.js";
 import { JobSpyProvider } from "./providers/jobspy.js";
 
 import type { JobProvider, ProviderFailure, ProviderStatus, SearchQuery, SearchResult } from "./types.js";
@@ -108,9 +108,9 @@ export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.
     ),
     new LennysJobsProvider(
       enabled(environment.JOBSCOUT_ENABLE_LENNYSJOBS),
-      environment.LENNYSJOBS_FEED_URL?.trim() || undefined,
+      environment.LENNYSJOBS_ENDPOINT?.trim() || defaultEndpoint,
+      environment.LENNYSJOBS_PARTNER_ID?.trim() || defaultPartnerId,
       environment.LENNYSJOBS_SITE_URL?.trim() || defaultSiteUrl,
-      environment.LENNYSJOBS_QUERY_PARAM?.trim() || undefined,
       Math.max(1_000, Math.min(60_000, Number(environment.LENNYSJOBS_TIMEOUT_MS ?? 20_000) || 20_000)),
     ),
   ]);

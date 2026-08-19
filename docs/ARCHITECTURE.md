@@ -7,7 +7,7 @@ MCP client
 JobScout tools
    |
    +--> provider registry --> Himalayas MCP
-   |                     --> Lenny's Job Board feed (HTTP JSON)
+   |                     --> Lenny's Job Board via TrueUp (HTTP search)
    |                     --> JobSpy subprocess bridge
    |                     --> future ATS / Apify adapters
    |

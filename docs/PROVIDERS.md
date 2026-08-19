@@ -59,30 +59,30 @@ Indeed results are country-scoped. JobScout sets no country by default and defer
 
 ## Lenny's Job Board
 
-Reads a public JSON feed of [Lenny's Job Board](https://www.lennysjobs.com/) over HTTP when explicitly enabled, then normalizes and filters it locally. Coverage is product, growth, design and engineering roles at tech companies and startups, which is the lane the other two providers cover least well.
+Queries the search endpoint behind [Lenny's Job Board](https://www.lennysjobs.com/) when explicitly enabled. Coverage is product, growth, design and engineering roles at tech companies and startups, which is the lane the other two providers cover least well.
 
-### You supply the endpoint
+### Where the data actually comes from
 
-**JobScout ships no default feed URL for this source.** The board publishes no documented public API, and this project does not bake in an endpoint it has not verified. Set `LENNYSJOBS_FEED_URL` to a JSON endpoint you have confirmed yourself and are entitled to read; until you do, an enabled provider reports a visible failure rather than an empty success, so a search never poses as "nothing matched" for a source that was never contacted.
+The board is a partner view over [TrueUp](https://www.trueup.io/)'s job index. Its page posts an Algolia-shaped query to `https://arc.trueup.io/jobs/search` with `trueupPartnerId: "lenny"`, and that partner id is what scopes results to this board rather than to all of TrueUp. JobScout sends the same request.
 
-Optional settings:
+**This is an undocumented third-party endpoint, not a published API.** No terms invite programmatic use, no version guarantee exists, and it can change or stop without notice. Enabling this provider is your decision and your responsibility: consider the rate at which you query it, and treat a sudden failure as expected rather than exceptional. `jobscout_list_sources` states the same thing at runtime.
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `JOBSCOUT_ENABLE_LENNYSJOBS` | `false` | Enable the provider |
-| `LENNYSJOBS_FEED_URL` | _(unset, required)_ | Public JSON feed to read. HTTP(S) only |
-| `LENNYSJOBS_QUERY_PARAM` | _(unset)_ | Query-string parameter to forward the search term in, if your endpoint supports server-side search. Unset means the whole feed is fetched and filtered locally |
-| `LENNYSJOBS_SITE_URL` | `https://www.lennysjobs.com` | Base used to build a listing link for records that carry an id but no URL |
+| `LENNYSJOBS_ENDPOINT` | `https://arc.trueup.io/jobs/search` | Search endpoint to post to. HTTP(S) only |
+| `LENNYSJOBS_PARTNER_ID` | `lenny` | Partner scope. Changing this changes which board's pool you get |
+| `LENNYSJOBS_SITE_URL` | `https://www.lennysjobs.com` | Base used to build a listing link from a record id |
 | `LENNYSJOBS_TIMEOUT_MS` | `20000` | Request timeout, bounded to 1–60 seconds |
 
-### Local filtering
+### Query translation
 
-A whole-board feed is not a search endpoint, so JobScout filters it after retrieval. A record is kept when **any** query term of three or more characters appears in its title, company, tags or description. Near misses are surfaced deliberately: a search for "senior product manager AI" should not return nothing because one word was absent. Set `LENNYSJOBS_QUERY_PARAM` if your endpoint can do the narrowing itself.
+The search term is passed through as the index query and `limit` becomes `hitsPerPage`, capped at the index's 100-hit page ceiling. A `location` becomes a `job_locations_combined` facet filter. Remote and freshness constraints are enforced by the registry after retrieval, as they are for every provider.
 
-### URLs
+Only the hit-bearing query is issued. The board pairs it with a second, hit-less query that populates its own facet sidebar; that response carries no jobs, so JobScout does not request it.
 
-Board links are recorded as `provenance[].discovery_url`. This provider never promotes a board apply flow to `canonical_url`; only an explicit `canonical_url` or `job_url_direct` in the feed is treated as an employer application route. Resolve the employer or ATS listing before applying.
+### Fields and URLs
 
-### Terms
+Location and tags are read from the index's own attributes — `job_locations_combined`, `job_subcategories_all`, `themes`, `description_tags`, `level`, `company_stage` — which are the facet names the board itself requests. Highlight markers the board asks for around matched terms are stripped before normalization.
 
-Reading a feed is your decision and your responsibility. Respect the board's terms of use and its rate limits, and do not point this provider at anything behind authentication.
+Board listing links are recorded as `provenance[].discovery_url`. `canonical_url` is set only when a hit names the employer's own route. Resolve the employer or ATS listing before applying.
