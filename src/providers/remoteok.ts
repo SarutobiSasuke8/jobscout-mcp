@@ -1,6 +1,8 @@
 import { mapUnknownJob, plainText, queryTerms, record, relevanceScore, stringArrayValue, textValue } from "./helpers.js";
+import { fetchTextResource } from "./http.js";
 
 import type { UnknownRecord } from "./helpers.js";
+import type { ResponseCache } from "./http.js";
 import type { JobProvider, NormalizedJob, ProviderSearchResult, ProviderStatus, SearchQuery } from "../types.js";
 
 const maxResponseBytes = 5_000_000;
@@ -118,6 +120,7 @@ export class RemoteOkProvider implements JobProvider {
     private readonly enabled: boolean,
     private readonly apiUrl: string,
     private readonly fetcher: typeof fetch = fetch,
+    private readonly cache?: ResponseCache,
   ) {}
 
   status(): ProviderStatus {
@@ -128,27 +131,23 @@ export class RemoteOkProvider implements JobProvider {
       authentication: "none",
       transport: "http-api",
       coverage: ["general", "ai", "web3"],
-      notes: "Public JSON endpoint returning the latest listings; the query is applied client-side because the endpoint offers no keyword search. RemoteOK's API terms ask for attribution back to the listing, so keep the discovery URL when republishing. Apply links on RemoteOK's own domain are recorded as provenance, not as employer application routes.",
+      // The endpoint returns the latest listings wholesale; there is no location parameter.
+      location_filtering: "none",
+      notes: "Public JSON endpoint returning the latest listings; the query is applied client-side because the endpoint offers no keyword search, and it is not scoped by location. RemoteOK's API terms ask for attribution back to the listing, so keep the discovery URL when republishing. Apply links on RemoteOK's own domain are recorded as provenance, not as employer application routes.",
     };
   }
 
   async search(query: SearchQuery): Promise<ProviderSearchResult> {
     if (!this.enabled) return { jobs: [], records_rejected: 0 };
-    const apiUrl = new URL(this.apiUrl);
-    if (apiUrl.protocol !== "https:" && apiUrl.protocol !== "http:") throw new Error("REMOTEOK_API_URL must use http or https.");
-    const response = await this.fetcher(apiUrl, {
-      headers: {
-        accept: "application/json",
-        // Identify the client rather than arriving as an anonymous default agent.
-        "user-agent": "jobscout-mcp (+https://github.com/SarutobiSasuke8/jobscout-mcp)",
-      },
-      signal: AbortSignal.timeout(30_000),
+    const { body, warnings } = await fetchTextResource({
+      fetcher: this.fetcher,
+      url: this.apiUrl,
+      accept: "application/json",
+      label: "RemoteOK",
+      configName: "REMOTEOK_API_URL",
+      maxBytes: maxResponseBytes,
+      ...(this.cache ? { cache: this.cache } : {}),
     });
-    if (!response.ok) throw new Error(`RemoteOK HTTP ${response.status}`);
-    const declaredLength = Number(response.headers.get("content-length") ?? 0);
-    if (declaredLength > maxResponseBytes) throw new Error("RemoteOK response exceeded the 5 MB safety limit.");
-    const body = await response.text();
-    if (Buffer.byteLength(body, "utf8") > maxResponseBytes) throw new Error("RemoteOK response exceeded the 5 MB safety limit.");
 
     let payload: unknown;
     try {
@@ -159,6 +158,6 @@ export class RemoteOkProvider implements JobProvider {
     if (!Array.isArray(payload)) throw new Error("RemoteOK returned an unexpected payload shape; expected an array of listings.");
 
     const { jobs, records_rejected } = parseRemoteOkPayload(payload, query.query);
-    return { jobs: jobs.slice(0, query.limit), records_rejected };
+    return { jobs: jobs.slice(0, query.limit), records_rejected, ...(warnings.length ? { warnings } : {}) };
   }
 }
