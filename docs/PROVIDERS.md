@@ -56,3 +56,33 @@ Unrecognised values are dropped rather than forwarded. The resolved list is repo
 ### Country scoping
 
 Indeed results are country-scoped. JobScout sets no country by default and defers to the `python-jobspy` library default. Set `JOBSPY_COUNTRY` (for example `JOBSPY_COUNTRY=United Kingdom`) to scope Indeed searches explicitly.
+
+## Lenny's Job Board
+
+Reads a public JSON feed of [Lenny's Job Board](https://www.lennysjobs.com/) over HTTP when explicitly enabled, then normalizes and filters it locally. Coverage is product, growth, design and engineering roles at tech companies and startups, which is the lane the other two providers cover least well.
+
+### You supply the endpoint
+
+**JobScout ships no default feed URL for this source.** The board publishes no documented public API, and this project does not bake in an endpoint it has not verified. Set `LENNYSJOBS_FEED_URL` to a JSON endpoint you have confirmed yourself and are entitled to read; until you do, an enabled provider reports a visible failure rather than an empty success, so a search never poses as "nothing matched" for a source that was never contacted.
+
+Optional settings:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `JOBSCOUT_ENABLE_LENNYSJOBS` | `false` | Enable the provider |
+| `LENNYSJOBS_FEED_URL` | _(unset, required)_ | Public JSON feed to read. HTTP(S) only |
+| `LENNYSJOBS_QUERY_PARAM` | _(unset)_ | Query-string parameter to forward the search term in, if your endpoint supports server-side search. Unset means the whole feed is fetched and filtered locally |
+| `LENNYSJOBS_SITE_URL` | `https://www.lennysjobs.com` | Base used to build a listing link for records that carry an id but no URL |
+| `LENNYSJOBS_TIMEOUT_MS` | `20000` | Request timeout, bounded to 1–60 seconds |
+
+### Local filtering
+
+A whole-board feed is not a search endpoint, so JobScout filters it after retrieval. A record is kept when **any** query term of three or more characters appears in its title, company, tags or description. Near misses are surfaced deliberately: a search for "senior product manager AI" should not return nothing because one word was absent. Set `LENNYSJOBS_QUERY_PARAM` if your endpoint can do the narrowing itself.
+
+### URLs
+
+Board links are recorded as `provenance[].discovery_url`. This provider never promotes a board apply flow to `canonical_url`; only an explicit `canonical_url` or `job_url_direct` in the feed is treated as an employer application route. Resolve the employer or ATS listing before applying.
+
+### Terms
+
+Reading a feed is your decision and your responsibility. Respect the board's terms of use and its rate limits, and do not point this provider at anything behind authentication.

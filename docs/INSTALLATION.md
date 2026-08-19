@@ -68,6 +68,10 @@ Then set `JOBSCOUT_ENABLE_JOBSPY=true` and optionally `JOBSPY_PYTHON=python`. Jo
 
 > **Before you enable this.** JobSpy sends automated requests **from your own machine** to job boards. JobScout defaults to **Indeed only**. You can widen this with `JOBSPY_SITES` to include LinkedIn, Glassdoor, Google Jobs, ZipRecruiter, Bayt or Naukri, but LinkedIn, Glassdoor and Indeed each restrict automated access in their terms of use, and that decision is yours. `jobscout_list_sources` always reports the sites currently configured. See [PROVIDERS.md](PROVIDERS.md#which-sites-this-contacts).
 
+## Enable Lenny's Job Board
+
+Set `JOBSCOUT_ENABLE_LENNYSJOBS=true` **and** `LENNYSJOBS_FEED_URL` to a public JSON feed for the board that you have verified yourself. JobScout ships no default endpoint for this source, so enabling it without a feed URL returns a clear provider failure rather than an empty result. See [PROVIDERS.md](PROVIDERS.md#lennys-job-board).
+
 ## Provider environment variables
 
 | Variable | Default | Purpose |
@@ -79,6 +83,11 @@ Then set `JOBSCOUT_ENABLE_JOBSPY=true` and optionally `JOBSPY_PYTHON=python`. Jo
 | `JOBSPY_TIMEOUT_MS` | `45000` | Set subprocess timeout, bounded to 1–120 seconds |
 | `JOBSPY_SITES` | `indeed` | Comma-separated sites to query: `indeed`, `linkedin`, `glassdoor`, `google`, `zip_recruiter`, `bayt`, `naukri`. Unrecognised values are dropped |
 | `JOBSPY_COUNTRY` | _(unset)_ | Country scope for Indeed. Unset defers to the `python-jobspy` default |
+| `JOBSCOUT_ENABLE_LENNYSJOBS` | `false` | Enable the Lenny's Job Board feed adapter |
+| `LENNYSJOBS_FEED_URL` | _(unset)_ | Public JSON feed to read. Required when the provider is enabled; HTTP(S) only |
+| `LENNYSJOBS_QUERY_PARAM` | _(unset)_ | Forward the search term in this query-string parameter instead of filtering locally |
+| `LENNYSJOBS_SITE_URL` | `https://www.lennysjobs.com` | Base for building listing links from record ids |
+| `LENNYSJOBS_TIMEOUT_MS` | `20000` | Request timeout, bounded to 1–60 seconds |
 
 ## Verify the server
 
@@ -92,6 +101,7 @@ The smoke test launches the server with the official MCP Inspector and calls `to
 ## Troubleshooting
 
 - **No results and no failures:** check `jobscout_list_sources`; all providers are disabled by default.
+- **Lenny's Job Board reports a failure about `LENNYSJOBS_FEED_URL`:** the provider is enabled but has no endpoint. Set the variable or disable the provider.
 - **JobSpy bridge missing:** install `python-jobspy` and confirm `JOBSPY_PYTHON` identifies the intended interpreter.
 - **Remote-only search omits unknown-location jobs:** strict remote filtering only retains jobs explicitly marked remote.
 - **A source is listed under `unknown_sources`:** the requested provider identifier is not installed in this build.

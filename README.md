@@ -60,6 +60,7 @@ Providers are disabled by default and failures are isolated.
 | Provider | Transport | Authentication | Notes |
 |---|---|---|---|
 | Himalayas | Remote MCP | Optional | Public job search; employer route should still be verified |
+| Lenny's Job Board | HTTP JSON feed | Optional | Product, growth, design and engineering roles; you supply the feed URL, board links are discovery URLs |
 | JobSpy | Local Python subprocess | None | Optional `python-jobspy`; availability and site terms vary |
 
 The provider contract supports future official ATS and specialist job-board adapters without coupling the core to any one vendor. See [provider documentation](docs/PROVIDERS.md).

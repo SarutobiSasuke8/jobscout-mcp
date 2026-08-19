@@ -130,7 +130,7 @@ export function createJobScoutServer(registry: ProviderRegistry): McpServer {
           text: [
             "Help me set up JobScout MCP. Follow these steps:",
             "1. Call jobscout_list_sources and show me each provider, whether it is enabled, and exactly which external services it contacts.",
-            "2. All providers are disabled by default; nothing is searched until I opt in. Explain the trade-offs: Himalayas is a public remote-jobs endpoint enabled with JOBSCOUT_ENABLE_HIMALAYAS=true; JobSpy scrapes job boards from my own machine, defaults to Indeed only, and widening JOBSPY_SITES is my decision and responsibility.",
+            "2. All providers are disabled by default; nothing is searched until I opt in. Explain the trade-offs: Himalayas is a public remote-jobs endpoint enabled with JOBSCOUT_ENABLE_HIMALAYAS=true; JobSpy scrapes job boards from my own machine, defaults to Indeed only, and widening JOBSPY_SITES is my decision and responsibility; Lenny's Job Board needs both JOBSCOUT_ENABLE_LENNYSJOBS=true and a LENNYSJOBS_FEED_URL I supply, because no endpoint ships with JobScout.",
             "3. Tell me which environment variables to set in my MCP client configuration and remind me to restart the client afterwards.",
             "4. Once configured, run a small test search and confirm results carry provenance.",
             "Do not store anything about me. JobScout holds no profile; preferences belong in this conversation only.",
