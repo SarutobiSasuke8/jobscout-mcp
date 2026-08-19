@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- We Work Remotely provider, opt-in behind `JOBSCOUT_ENABLE_WEWORKREMOTELY`, reading the public RSS feed configured by `WWR_RSS_URL`
+
+
 ## 0.2.1 - 2026-08-11
 
 Published as `@sarutobi-sasuke/jobscout-mcp` to npm and the MCP Registry.
