@@ -1,4 +1,5 @@
 import { deduplicateJobs } from "./core.js";
+import { ResponseCache } from "./providers/http.js";
 import { HimalayasProvider } from "./providers/himalayas.js";
 import { JobSpyProvider } from "./providers/jobspy.js";
 import { RemoteOkProvider } from "./providers/remoteok.js";
@@ -59,19 +60,43 @@ export class ProviderRegistry {
       result: await provider.search(query),
     })));
     const failures: ProviderFailure[] = [];
+    const warnings: SearchResult["warnings"] = [];
     const jobs = [];
     let recordsRejected = 0;
+    // Attributed as well as summed: the aggregate says something drifted, only the breakdown
+    // says which source to go and look at.
+    const rejectedByProvider: Record<string, number> = {};
     for (const [index, result] of settled.entries()) {
       const provider = selected[index]?.status().id ?? "unknown";
       if (result.status === "fulfilled") {
         jobs.push(...result.value.result.jobs);
         recordsRejected += result.value.result.records_rejected;
+        rejectedByProvider[provider] = result.value.result.records_rejected;
+        for (const warning of result.value.result.warnings ?? []) warnings.push({ provider, warning });
       } else failures.push({ provider, error: errorMessage(result.reason) });
     }
     const finalJobs = deduplicateJobs(jobs)
       .filter((job) => !query.remote_only || job.remote === true)
       .filter((job) => isFreshEnough(job.date_posted, query.hours_old))
-      .slice(0, query.limit);
+      // An undated record cannot be shown to be fresh, only assumed to be. The default keeps it
+      // and counts it; `require_dated` is for callers who would rather have fewer results than
+      // results they cannot date.
+      .filter((job) => !query.require_dated || Boolean(job.date_posted))
+      .slice(0, query.limit)
+      .map((job) => {
+        if (query.include_descriptions) return job;
+        const trimmed = { ...job };
+        delete trimmed.description;
+        delete trimmed.description_truncated;
+        return trimmed;
+      });
+
+    // Whole-feed providers have no location parameter to pass upstream, so a location-scoped
+    // search reaches them unscoped. Saying so is the difference between "nothing there" and
+    // "nobody asked on your behalf".
+    const locationUnfiltered = query.location
+      ? selected.map((provider) => provider.status()).filter((status) => status.location_filtering !== "provider").map((status) => status.id)
+      : [];
     // A search against zero enabled providers must say so. Without the flag, a fresh install
     // returns an empty success and the calling agent tells its user "no jobs matched" — false,
     // because nothing was searched. This was the first thing a first-run test tripped over.
@@ -83,7 +108,10 @@ export class ProviderRegistry {
       unknown_sources: unknownSources,
       providers_disabled: providersDisabled,
       records_rejected: recordsRejected,
+      records_rejected_by_provider: rejectedByProvider,
       undated_records: finalJobs.filter((job) => !job.date_posted).length,
+      location_unfiltered: locationUnfiltered,
+      warnings,
       ...(setupRequired ? {
         setup_required: true,
         message: providersDisabled.length
@@ -94,7 +122,20 @@ export class ProviderRegistry {
   }
 }
 
+/**
+ * Whole-feed providers re-download identical public data on every call, so several searches in
+ * one conversation cost several full transfers. The window is short by default: long enough to
+ * collapse a burst of searches into one fetch, short enough that a caller is not reasoning about
+ * yesterday's market. Set 0 to disable.
+ */
+export function resolveCacheTtlMs(value: string | undefined): number {
+  const parsed = Number(value ?? 300_000);
+  if (!Number.isFinite(parsed) || parsed < 0) return 300_000;
+  return Math.min(parsed, 60 * 60 * 1_000);
+}
+
 export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.env): ProviderRegistry {
+  const cache = new ResponseCache(resolveCacheTtlMs(environment.JOBSCOUT_FEED_CACHE_TTL_MS));
   return new ProviderRegistry([
     new HimalayasProvider(
       enabled(environment.JOBSCOUT_ENABLE_HIMALAYAS),
@@ -110,10 +151,14 @@ export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.
     new WeWorkRemotelyProvider(
       enabled(environment.JOBSCOUT_ENABLE_WEWORKREMOTELY),
       environment.WWR_RSS_URL ?? "https://weworkremotely.com/remote-jobs.rss",
+      fetch,
+      cache,
     ),
     new RemoteOkProvider(
       enabled(environment.JOBSCOUT_ENABLE_REMOTEOK),
       environment.REMOTEOK_API_URL ?? "https://remoteok.com/api",
+      fetch,
+      cache,
     ),
   ]);
 }

@@ -14,6 +14,20 @@ Provider failures are returned alongside successful results. One provider outage
 
 When callers explicitly request unknown provider identifiers, JobScout returns them under `unknown_sources`. Provider results are treated as untrusted: invalid jobs are rejected (and counted in `records_rejected`, never silently dropped), URLs must use HTTP(S), response sizes are bounded, and remote/freshness constraints are enforced again after retrieval. A search against zero enabled providers reports `setup_required: true` rather than posing as an empty market.
 
+## Disclosure fields
+
+A search result reports what was actually done, not only what was found:
+
+- `location_unfiltered` names providers that were queried but could not apply the requested `location`. Whole-feed sources have no location parameter to pass upstream, so their results are unscoped rather than empty. Each provider declares this as `location_filtering` in `jobscout_list_sources`.
+- `warnings` names providers that returned degraded results — a stale cached copy after a rate limit, for example. A warning is not a failure: the results are real but thinner or older than a healthy run.
+- `records_rejected_by_provider` attributes dropped records to the source that produced them. The aggregate says something drifted; only the breakdown says where to look. `undated_records` stays aggregate, because a deduplicated record can carry provenance from several sources at once and attributing it to one would be a guess.
+
+## Caching
+
+Providers that download a whole feed share a short-lived response cache keyed by URL, so several searches in one conversation cost one fetch rather than several. Entries hold public listings only — never anything about the person searching. Configure with `JOBSCOUT_FEED_CACHE_TTL_MS` (default 300000, `0` disables, clamped to one hour).
+
+A past-freshness copy is retained briefly beyond the TTL and served if the source rate-limits or times out, always accompanied by a warning. Non-transient failures such as a 404 are never answered from cache: that would hide a misconfigured URL indefinitely.
+
 ## URL semantics
 
 Every record can carry two different kinds of link, and consumers should not conflate them:

@@ -1,5 +1,7 @@
 import { mapUnknownJob, plainText, queryTerms, relevanceScore } from "./helpers.js";
+import { fetchTextResource } from "./http.js";
 
+import type { ResponseCache } from "./http.js";
 import type { JobProvider, NormalizedJob, ProviderSearchResult, ProviderStatus, SearchQuery } from "../types.js";
 
 const maxResponseBytes = 5_000_000;
@@ -125,6 +127,7 @@ export class WeWorkRemotelyProvider implements JobProvider {
     private readonly enabled: boolean,
     private readonly feedUrl: string,
     private readonly fetcher: typeof fetch = fetch,
+    private readonly cache?: ResponseCache,
   ) {}
 
   status(): ProviderStatus {
@@ -135,28 +138,24 @@ export class WeWorkRemotelyProvider implements JobProvider {
       authentication: "none",
       transport: "http-api",
       coverage: ["general"],
-      notes: `Public RSS feed, fetched in full and filtered client-side because RSS exposes no keyword search. Currently reading ${this.feedUrl}; set WWR_RSS_URL to a category feed to narrow it.`,
+      // The feed carries no location parameter, so a location-scoped search reaches it unscoped.
+      location_filtering: "none",
+      notes: `Public RSS feed, fetched in full and filtered client-side because RSS exposes no keyword search, and not scoped by location. Currently reading ${this.feedUrl}; set WWR_RSS_URL to a category feed to narrow it.`,
     };
   }
 
   async search(query: SearchQuery): Promise<ProviderSearchResult> {
     if (!this.enabled) return { jobs: [], records_rejected: 0 };
-    const feedUrl = new URL(this.feedUrl);
-    if (feedUrl.protocol !== "https:" && feedUrl.protocol !== "http:") throw new Error("WWR_RSS_URL must use http or https.");
-    const response = await this.fetcher(feedUrl, {
-      headers: {
-        accept: "application/rss+xml, application/xml, text/xml",
-        // Identify the client rather than arriving as an anonymous default agent.
-        "user-agent": "jobscout-mcp (+https://github.com/SarutobiSasuke8/jobscout-mcp)",
-      },
-      signal: AbortSignal.timeout(30_000),
+    const { body, warnings } = await fetchTextResource({
+      fetcher: this.fetcher,
+      url: this.feedUrl,
+      accept: "application/rss+xml, application/xml, text/xml",
+      label: "We Work Remotely RSS",
+      configName: "WWR_RSS_URL",
+      maxBytes: maxResponseBytes,
+      ...(this.cache ? { cache: this.cache } : {}),
     });
-    if (!response.ok) throw new Error(`We Work Remotely RSS HTTP ${response.status}`);
-    const declaredLength = Number(response.headers.get("content-length") ?? 0);
-    if (declaredLength > maxResponseBytes) throw new Error("We Work Remotely RSS response exceeded the 5 MB safety limit.");
-    const body = await response.text();
-    if (Buffer.byteLength(body, "utf8") > maxResponseBytes) throw new Error("We Work Remotely RSS response exceeded the 5 MB safety limit.");
     const { jobs, records_rejected } = parseWeWorkRemotelyRss(body, query.query);
-    return { jobs: jobs.slice(0, query.limit), records_rejected };
+    return { jobs: jobs.slice(0, query.limit), records_rejected, ...(warnings.length ? { warnings } : {}) };
   }
 }

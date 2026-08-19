@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { normalizeJob } from "../src/core.js";
 import { ProviderRegistry, resolveJobSpySites } from "../src/registry.js";
+import { searchQuery } from "./support.js";
 
 import type { JobProvider } from "../src/types.js";
 
@@ -31,24 +32,19 @@ const disabled: JobProvider = {
 };
 
 void test("returns partial results when one provider fails", async () => {
-  const result = await new ProviderRegistry([working, failing]).search({ query: "sales", remote_only: false, limit: 25 });
+  const result = await new ProviderRegistry([working, failing]).search(searchQuery());
   assert.equal(result.jobs.length, 1);
   assert.equal(result.failures.length, 1);
   assert.equal(result.failures[0]?.provider, "failing");
 });
 
 void test("reports unknown requested sources", async () => {
-  const result = await new ProviderRegistry([working]).search({
-    query: "sales",
-    remote_only: false,
-    limit: 25,
-    sources: ["working", "missing"],
-  });
+  const result = await new ProviderRegistry([working]).search(searchQuery({ sources: ["working", "missing"] }));
   assert.deepEqual(result.unknown_sources, ["missing"]);
 });
 
 void test("enforces remote-only filters after provider retrieval", async () => {
-  const result = await new ProviderRegistry([working]).search({ query: "sales", remote_only: true, limit: 25 });
+  const result = await new ProviderRegistry([working]).search(searchQuery({ remote_only: true }));
   assert.equal(result.jobs.length, 0);
 });
 
@@ -70,7 +66,7 @@ void test("JobSpy site resolution accepts a documented list and drops unknown va
 // Honest-results contract (v0.2.1). A fresh install has zero enabled providers; without an
 // explicit setup_required flag the empty success reads as "no jobs matched", which is false.
 void test("a search with zero enabled providers says setup is required", async () => {
-  const result = await new ProviderRegistry([disabled]).search({ query: "sales", remote_only: false, limit: 25 });
+  const result = await new ProviderRegistry([disabled]).search(searchQuery());
   assert.equal(result.setup_required, true);
   assert.deepEqual(result.providers_disabled, ["disabled"]);
   assert.match(result.message ?? "", /No providers are enabled/u);
@@ -78,13 +74,13 @@ void test("a search with zero enabled providers says setup is required", async (
 });
 
 void test("a search with an enabled provider does not raise setup_required", async () => {
-  const result = await new ProviderRegistry([working, disabled]).search({ query: "sales", remote_only: false, limit: 25 });
+  const result = await new ProviderRegistry([working, disabled]).search(searchQuery());
   assert.equal(result.setup_required, undefined);
   assert.deepEqual(result.providers_disabled, ["disabled"]);
 });
 
 void test("rejected and undated records are counted, not silently dropped", async () => {
-  const result = await new ProviderRegistry([working]).search({ query: "sales", remote_only: false, limit: 25 });
+  const result = await new ProviderRegistry([working]).search(searchQuery());
   assert.equal(result.records_rejected, 2, "provider-reported rejections must surface");
   assert.equal(result.undated_records, 1, "the fixture job has no date_posted");
 });
