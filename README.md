@@ -61,6 +61,7 @@ Providers are disabled by default and failures are isolated.
 |---|---|---|---|
 | Himalayas | Remote MCP | Optional | Public job search; employer route should still be verified |
 | We Work Remotely | Public RSS feed | None | No keyword search endpoint; results filtered client-side |
+| RemoteOK | Public JSON endpoint | None | Latest-listings feed filtered client-side; attribution requested by its API terms |
 | JobSpy | Local Python subprocess | None | Optional `python-jobspy`; availability and site terms vary |
 
 The provider contract supports future official ATS and specialist job-board adapters without coupling the core to any one vendor. See [provider documentation](docs/PROVIDERS.md).

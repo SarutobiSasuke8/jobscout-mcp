@@ -1,4 +1,4 @@
-import { mapUnknownJob } from "./helpers.js";
+import { mapUnknownJob, plainText, queryTerms, relevanceScore } from "./helpers.js";
 
 import type { JobProvider, NormalizedJob, ProviderSearchResult, ProviderStatus, SearchQuery } from "../types.js";
 
@@ -10,50 +10,15 @@ function unwrapCdata(value: string): string {
   return (match?.[1] ?? trimmed).trim();
 }
 
-const namedEntities = new Map([
-  ["amp", "&"],
-  ["lt", "<"],
-  ["gt", ">"],
-  ["quot", "\""],
-  ["apos", "'"],
-  ["nbsp", " "],
-]);
-
-function decodeEntities(value: string): string {
-  return value.replace(/&(#x?[0-9a-f]+|[a-z]+);/giu, (match, body: string) => {
-    const token = body.toLocaleLowerCase("en");
-    if (!token.startsWith("#")) return namedEntities.get(token) ?? match;
-    const codePoint = token.startsWith("#x")
-      ? Number.parseInt(token.slice(2), 16)
-      : Number.parseInt(token.slice(1), 10);
-    if (!Number.isFinite(codePoint) || codePoint <= 0 || codePoint > 0x10_ff_ff) return match;
-    try {
-      return String.fromCodePoint(codePoint);
-    } catch {
-      return match;
-    }
-  });
-}
-
-/**
- * Tags are stripped before entities are decoded, never the other way around. A listing
- * containing the literal text `&lt;script&gt;` is quoting markup, not carrying it; decoding
- * first would manufacture a real tag out of escaped prose and then hand it downstream as
- * though the feed had published it.
- */
-function cleanText(value: string): string {
-  return decodeEntities(value.replace(/<[^>]+>/gu, " ")).replace(/\s+/gu, " ").trim();
-}
-
 function extractTag(block: string, tag: string): string | undefined {
   const match = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "u"));
-  const value = match ? cleanText(unwrapCdata(match[1] ?? "")) : "";
+  const value = match ? plainText(unwrapCdata(match[1] ?? "")) : "";
   return value || undefined;
 }
 
 function extractAllTags(block: string, tag: string): string[] {
   const matches = block.matchAll(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "gu"));
-  return [...matches].map((match) => cleanText(unwrapCdata(match[1] ?? ""))).filter(Boolean);
+  return [...matches].map((match) => plainText(unwrapCdata(match[1] ?? ""))).filter(Boolean);
 }
 
 function isoDate(pubDate: string | undefined): string | undefined {
@@ -123,29 +88,15 @@ function parseItem(block: string): FeedItem | undefined {
   };
 }
 
-/** How many of the query's terms this listing mentions. Zero means it is not a match at all. */
-function relevance(item: FeedItem, terms: string[]): number {
-  if (!terms.length) return 1;
-  const haystack = [item.title, item.company, item.description ?? "", ...(item.categories ?? [])]
-    .join(" ")
-    .toLocaleLowerCase("en");
-  return terms.filter((term) => haystack.includes(term)).length;
-}
-
 /**
  * We Work Remotely publishes RSS, not a keyword search endpoint, so the whole feed arrives and
- * the query is applied here.
- *
- * Matching is deliberately OR-with-ranking rather than plain OR. A two-word query against a
- * whole-feed download matches a large share of the feed on either word, and `limit` then
- * truncates that set in feed order — so a search for "product manager" could return nothing but
- * unrelated managers and never reach the product roles. Scoring by matched-term count and
- * sorting before the caller slices makes the truncation keep the closest matches. The sort is
- * stable, so listings on equal scores stay in the feed's own recency order.
+ * the query is applied here. Results are ranked by matched-term count before the caller slices
+ * to `limit`, so truncation keeps the closest matches. The sort is stable, leaving listings on
+ * equal scores in the feed's own recency order.
  */
 export function parseWeWorkRemotelyRss(xml: string, query: string): ProviderSearchResult {
   const blocks = xml.match(/<item>[\s\S]*?<\/item>/gu) ?? [];
-  const terms = query.trim().toLocaleLowerCase("en").split(/\s+/u).filter(Boolean);
+  const terms = queryTerms(query);
 
   const scored: Array<{ job: NormalizedJob; score: number }> = [];
   let rejected = 0;
@@ -158,7 +109,7 @@ export function parseWeWorkRemotelyRss(xml: string, query: string): ProviderSear
       rejected += 1;
       continue;
     }
-    const score = relevance(item, terms);
+    const score = relevanceScore([item.title, item.company, item.description, ...(item.categories ?? [])], terms);
     if (score === 0) continue;
     const job = mapUnknownJob("weworkremotely", { ...item });
     if (job) scored.push({ job, score });

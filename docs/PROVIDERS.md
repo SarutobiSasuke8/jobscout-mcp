@@ -35,6 +35,17 @@ Set `WWR_RSS_URL` to a category-specific feed (for example `https://weworkremote
 
 Item titles on this feed follow a "Company: Job title" convention; a listing that omits the colon is recorded with company `Unknown` rather than dropped.
 
+## RemoteOK
+
+Uses the public JSON endpoint (`https://remoteok.com/api` by default, overridable with `REMOTEOK_API_URL`). No authentication. The endpoint returns the latest listings rather than answering a keyword query, so JobScout filters and ranks client-side.
+
+Two behaviours are worth knowing:
+
+- **Attribution.** RemoteOK's API terms ask for a link back to the listing. The feed carries this as a notice object in the first array position, which JobScout skips as metadata. Every record keeps its `provenance[].discovery_url`, so attribution is available wherever results are republished.
+- **Apply links.** RemoteOK's `apply_url` is often a redirect on its own domain. Those are recorded as provenance only and never as `canonical_url`, because that field means the employer's application route and is the primary deduplication identity — treating a redirect as canonical would both imply employer endorsement and give each listing an identity that could never merge with the same vacancy from another source. An `apply_url` pointing at a genuine employer domain is kept as `canonical_url`.
+
+Salary figures are published as bare numbers with no currency field, so they are passed through without a currency rather than assuming one.
+
 ## JobSpy
 
 Uses `python-jobspy` through the bundled Python bridge. It is optional because scraped job boards can throttle or change without notice.

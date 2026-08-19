@@ -1,6 +1,7 @@
 import { deduplicateJobs } from "./core.js";
 import { HimalayasProvider } from "./providers/himalayas.js";
 import { JobSpyProvider } from "./providers/jobspy.js";
+import { RemoteOkProvider } from "./providers/remoteok.js";
 import { WeWorkRemotelyProvider } from "./providers/weworkremotely.js";
 
 import type { JobProvider, ProviderFailure, ProviderStatus, SearchQuery, SearchResult } from "./types.js";
@@ -109,6 +110,10 @@ export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.
     new WeWorkRemotelyProvider(
       enabled(environment.JOBSCOUT_ENABLE_WEWORKREMOTELY),
       environment.WWR_RSS_URL ?? "https://weworkremotely.com/remote-jobs.rss",
+    ),
+    new RemoteOkProvider(
+      enabled(environment.JOBSCOUT_ENABLE_REMOTEOK),
+      environment.REMOTEOK_API_URL ?? "https://remoteok.com/api",
     ),
   ]);
 }

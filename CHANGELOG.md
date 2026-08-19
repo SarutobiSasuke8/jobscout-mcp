@@ -5,6 +5,8 @@
 ### Added
 
 - We Work Remotely provider, opt-in behind `JOBSCOUT_ENABLE_WEWORKREMOTELY`, reading the public RSS feed configured by `WWR_RSS_URL`
+- RemoteOK provider, opt-in behind `JOBSCOUT_ENABLE_REMOTEOK`, reading the public JSON endpoint configured by `REMOTEOK_API_URL`
+- shared provider text helpers for markup reduction, entity decoding, and client-side query ranking
 
 ## 0.2.0 - Unreleased
 
