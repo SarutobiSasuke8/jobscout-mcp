@@ -32,6 +32,11 @@
           "default": "false"
         },
         {
+          "name": "JOBSCOUT_ENABLE_REMOTEOK",
+          "description": "Enable the public RemoteOK JSON adapter.",
+          "default": "false"
+        },
+        {
           "name": "JOBSCOUT_ENABLE_JOBSPY",
           "description": "Enable the optional local python-jobspy bridge.",
           "default": "false"
