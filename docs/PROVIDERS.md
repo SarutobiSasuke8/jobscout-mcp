@@ -27,6 +27,14 @@ Every record can carry two different kinds of link, and consumers should not con
 
 Uses the public remote MCP endpoint when explicitly enabled. The adapter requests `search_jobs`; authenticated profile or tracker tools are outside scope.
 
+## We Work Remotely
+
+Uses the public We Work Remotely RSS feed (`https://weworkremotely.com/remote-jobs.rss` by default). No authentication and no rate-limit concerns beyond normal RSS fetching, but RSS has no keyword search endpoint, so JobScout downloads the feed and filters by `query` client-side rather than sending the query to We Work Remotely.
+
+Set `WWR_RSS_URL` to a category-specific feed (for example `https://weworkremotely.com/categories/remote-programming-jobs.rss`) to narrow what gets fetched instead of the combined feed.
+
+Item titles on this feed follow a "Company: Job title" convention; a listing that omits the colon is recorded with company `Unknown` rather than dropped.
+
 ## JobSpy
 
 Uses `python-jobspy` through the bundled Python bridge. It is optional because scraped job boards can throttle or change without notice.

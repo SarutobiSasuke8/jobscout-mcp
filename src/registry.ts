@@ -1,6 +1,7 @@
 import { deduplicateJobs } from "./core.js";
 import { HimalayasProvider } from "./providers/himalayas.js";
 import { JobSpyProvider } from "./providers/jobspy.js";
+import { WeWorkRemotelyProvider } from "./providers/weworkremotely.js";
 
 import type { JobProvider, ProviderFailure, ProviderStatus, SearchQuery, SearchResult } from "./types.js";
 
@@ -104,6 +105,10 @@ export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.
       Math.max(1_000, Math.min(120_000, Number(environment.JOBSPY_TIMEOUT_MS ?? 45_000) || 45_000)),
       resolveJobSpySites(environment.JOBSPY_SITES),
       environment.JOBSPY_COUNTRY?.trim() || undefined,
+    ),
+    new WeWorkRemotelyProvider(
+      enabled(environment.JOBSCOUT_ENABLE_WEWORKREMOTELY),
+      environment.WWR_RSS_URL ?? "https://weworkremotely.com/remote-jobs.rss",
     ),
   ]);
 }
