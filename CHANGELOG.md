@@ -9,6 +9,9 @@
   and location mapping, and highlight-marker stripping
 - `JOBSCOUT_ENABLE_LENNYSJOBS`, `LENNYSJOBS_ENDPOINT`, `LENNYSJOBS_PARTNER_ID`,
   `LENNYSJOBS_SITE_URL` and `LENNYSJOBS_TIMEOUT_MS`
+- `jobscout_source_yield`: per-source unique yield, overlap rate, employer-route coverage,
+  undated records and duplicate conflicts over a supplied pool, returning counts only and no
+  job text
 
 ### Notes
 

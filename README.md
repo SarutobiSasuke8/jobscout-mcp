@@ -28,6 +28,7 @@ JobScout deliberately stops at trustworthy discovery. It does not store CVs, ran
 | `jobscout_classify_jobs` | Detect AI, agentic and Web3 signals in supplied jobs | No |
 | `jobscout_deduplicate` | Normalize and merge supplied JobScout records | No |
 | `jobscout_briefing` | Project records into briefing-ready entries with a compact `one_line` and best link | No |
+| `jobscout_source_yield` | Report what each source contributed: unique finds, overlap, employer-route coverage, undated records, conflicts | No |
 
 Two MCP prompts guide first-run use without the server storing anything: `jobscout_setup` walks through enabling providers and what each one contacts; `jobscout_find_jobs` gathers role, location and remote preference per search. A search run with zero enabled providers returns `setup_required: true` with guidance instead of a misleading empty result, and results report `providers_disabled`, `records_rejected` and `undated_records` so thin results are always explained.
 

@@ -15,6 +15,7 @@
 - [x] MCP Registry metadata, npm release workflow and Inspector smoke test
 - [x] Major-client installation recipes and optional operator guide
 - [ ] Configurable official ATS adapters for Greenhouse, Ashby and Lever
+- [x] Lenny's Job Board adapter via the TrueUp partner endpoint
 - [ ] Apify actor adapter with bring-your-own token
 - [ ] WWSHEMI adapter after documenting its public-source contract
 - [ ] Provider health telemetry and rate-limit backoff
@@ -25,5 +26,5 @@
 
 - [ ] Package provider SDK for third-party adapters
 - [ ] Streamable HTTP deployment mode with scoped authentication
-- [ ] Source yield and duplicate-rate reports
+- [x] Source yield and duplicate-rate reports
 - [ ] Optional hosted service without changing the local-first core
