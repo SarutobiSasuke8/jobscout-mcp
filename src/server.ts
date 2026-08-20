@@ -4,6 +4,7 @@ import { z } from "zod";
 import { toBriefingEntry } from "./briefing.js";
 import { deduplicateJobs } from "./core.js";
 import { classifyJob } from "./taxonomy.js";
+import { summarizeYield } from "./yield.js";
 import { normalizedJobSchema, searchQuerySchema } from "./types.js";
 
 import type { CallToolResult } from "@modelcontextprotocol/server";
@@ -101,6 +102,20 @@ export function createJobScoutServer(registry: ProviderRegistry): McpServer {
     ({ jobs }) => result({ jobs: deduplicateJobs(jobs), input_count: jobs.length }, { untrusted: true }),
   );
 
+  // Counts and rates only: no job text reaches the result, so this tool carries no untrusted
+  // notice. That is deliberate — a caller can measure its sources without pulling a few hundred
+  // listings' worth of third-party prose back into a model's context to do it.
+  server.registerTool(
+    "jobscout_source_yield",
+    {
+      title: "Measure source yield and overlap",
+      description: "Deterministically report what each source contributed to a pool: unique finds, overlap with other sources, employer-route coverage, undated records and duplicate conflicts. Contacts no provider, adds no claims, and returns no job text. Measures discovery yield only: it cannot know which roles were worth pursuing, so low unique yield does not by itself mean a source should be dropped.",
+      inputSchema: z.object({ jobs: z.array(normalizedJobSchema).max(5_000) }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    },
+    ({ jobs }) => result(summarizeYield(jobs) as unknown as Record<string, unknown>),
+  );
+
   server.registerTool(
     "jobscout_briefing",
     {
@@ -130,7 +145,7 @@ export function createJobScoutServer(registry: ProviderRegistry): McpServer {
           text: [
             "Help me set up JobScout MCP. Follow these steps:",
             "1. Call jobscout_list_sources and show me each provider, whether it is enabled, and exactly which external services it contacts.",
-            "2. All providers are disabled by default; nothing is searched until I opt in. Explain the trade-offs: Himalayas is a public remote-jobs endpoint enabled with JOBSCOUT_ENABLE_HIMALAYAS=true; JobSpy scrapes job boards from my own machine, defaults to Indeed only, and widening JOBSPY_SITES is my decision and responsibility.",
+            "2. All providers are disabled by default; nothing is searched until I opt in. Explain the trade-offs: Himalayas is a public remote-jobs endpoint enabled with JOBSCOUT_ENABLE_HIMALAYAS=true; JobSpy scrapes job boards from my own machine, defaults to Indeed only, and widening JOBSPY_SITES is my decision and responsibility; Lenny's Job Board is enabled with JOBSCOUT_ENABLE_LENNYSJOBS=true and queries TrueUp's undocumented search endpoint, which can change without notice.",
             "3. Tell me which environment variables to set in my MCP client configuration and remind me to restart the client afterwards.",
             "4. Once configured, run a small test search and confirm results carry provenance.",
             "Do not store anything about me. JobScout holds no profile; preferences belong in this conversation only.",
