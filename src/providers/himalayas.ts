@@ -1,4 +1,5 @@
 import { findJobRecords, mapJobRecords, mapUnknownJob, record } from "./helpers.js";
+import { VERSION } from "../version.js";
 
 import type { JobProvider, NormalizedJob, ProviderSearchResult, ProviderStatus, SearchQuery } from "../types.js";
 
@@ -67,6 +68,7 @@ export class HimalayasProvider implements JobProvider {
       authentication: "optional",
       transport: "remote-mcp",
       coverage: ["general", "ai", "web3"],
+      location_filtering: "provider",
       notes: "Public search only. Canonical employer links may require separate verification.",
     };
   }
@@ -104,7 +106,7 @@ export class HimalayasProvider implements JobProvider {
       params: {
         protocolVersion: "2025-06-18",
         capabilities: {},
-        clientInfo: { name: "jobscout-mcp", version: "0.2.1" },
+        clientInfo: { name: "jobscout-mcp", version: VERSION },
       },
     });
 

@@ -37,6 +37,21 @@ export const searchQuerySchema = z.object({
   hours_old: z.number().int().min(1).max(24 * 90).optional(),
   limit: z.number().int().min(1).max(100).default(25),
   sources: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
+  /**
+   * Drop records carrying no posting date. `hours_old` cannot vouch for an undated record, so
+   * by default those are kept and counted in `undated_records` rather than being passed off as
+   * fresh. Set this when a stale result is worse than a thin one.
+   */
+  require_dated: z.boolean().default(false)
+    .describe("Drop records with no posting date. Freshness filters cannot vouch for undated records, so by default they are kept and counted in undated_records. Set true when a stale result is worse than a thin one."),
+  /**
+   * Return job descriptions. A full page of results can carry several hundred kilobytes of
+   * untrusted third-party prose, which is both the largest token cost here and the ideal
+   * carrier for an injected instruction. Callers that only need the briefing projection can
+   * turn it off and pay for none of it.
+   */
+  include_descriptions: z.boolean().default(true)
+    .describe("Return full job descriptions. Set false when only titles, companies and links are needed (for example when formatting with jobscout_briefing): descriptions are the bulk of the response size and are untrusted third-party prose."),
 });
 
 export const provenanceSchema = z.object({
@@ -98,6 +113,14 @@ export interface ProviderStatus {
   transport?: "remote-mcp" | "subprocess" | "http-api";
   coverage?: Array<"general" | "ai" | "web3">;
   optional_dependency?: string;
+  /**
+   * Whether the provider applies the caller's `location` upstream ("provider") or cannot and
+   * ignores it ("none"). Whole-feed sources have no location parameter to pass on, so a search
+   * scoped to a city returns their listings unscoped. Declaring it lets the registry disclose
+   * which providers did not honour the constraint instead of returning a result that reads as
+   * an answer to a narrower question than was actually asked.
+   */
+  location_filtering?: "provider" | "none";
   notes: string;
 }
 
@@ -110,6 +133,13 @@ export interface ProviderStatus {
 export interface ProviderSearchResult {
   jobs: NormalizedJob[];
   records_rejected: number;
+  /**
+   * Non-fatal degradations: the provider returned results, but not the results it would have
+   * returned in good health (stale cache served after a rate limit, one feed of several
+   * unreachable). Without this channel a provider's only options are to fail loudly or to lose
+   * coverage silently, and the second is how a thin result gets mistaken for a thin market.
+   */
+  warnings?: string[];
 }
 
 export interface JobProvider {
@@ -132,8 +162,24 @@ export interface SearchResult {
   providers_disabled: string[];
   /** Source records dropped during validation across all queried providers. */
   records_rejected: number;
-  /** Returned jobs carrying no date_posted; freshness filters cannot vouch for these. */
+  /**
+   * The same count split by provider. The aggregate says something drifted; only this says
+   * which source to go and look at, which is the whole point of tracking it.
+   */
+  records_rejected_by_provider: Record<string, number>;
+  /**
+   * Returned jobs carrying no date_posted; freshness filters cannot vouch for these. Reported
+   * in aggregate rather than per provider because a deduplicated record can carry provenance
+   * from several sources at once, so attributing it to one would be a guess.
+   */
   undated_records: number;
+  /**
+   * Providers that were queried but ignored the caller's `location`. Empty when no location was
+   * requested. These providers' results are unscoped, not "no matches in that location".
+   */
+  location_unfiltered: string[];
+  /** Non-fatal provider degradations. Coverage may be thinner than a healthy run. */
+  warnings: Array<{ provider: string; warning: string }>;
   /**
    * True when the search ran against zero enabled providers. Without this flag a fresh
    * install returns an empty success and the calling agent tells its user "no jobs matched",
