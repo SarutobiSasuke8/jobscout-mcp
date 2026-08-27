@@ -19,7 +19,9 @@
 - [ ] WWSHEMI adapter after documenting its public-source contract
 - [ ] Provider health telemetry and rate-limit backoff
 - [ ] Canonical employer-link resolver with explicit confidence
-- [ ] Publish the npm package and MCP Registry entry
+- [x] Publish the npm package and MCP Registry entry (0.2.1 live as `@sarutobi-sasuke/jobscout-mcp`, 2026-08-11)
+- [ ] MCP Registry publish step in release.yml (currently manual, will drift on next release)
+- [ ] Recruiter/agency and direct-outreach lead sources — or explicitly declare board-listing-only scope
 
 ## Later
 
