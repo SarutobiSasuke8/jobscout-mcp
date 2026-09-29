@@ -14,6 +14,20 @@ Provider failures are returned alongside successful results. One provider outage
 
 When callers explicitly request unknown provider identifiers, JobScout returns them under `unknown_sources`. Provider results are treated as untrusted: invalid jobs are rejected (and counted in `records_rejected`, never silently dropped), URLs must use HTTP(S), response sizes are bounded, and remote/freshness constraints are enforced again after retrieval. A search against zero enabled providers reports `setup_required: true` rather than posing as an empty market.
 
+## Disclosure fields
+
+A search result reports what was actually done, not only what was found:
+
+- `location_unfiltered` names providers that were queried but could not apply the requested `location`. Whole-feed sources have no location parameter to pass upstream, so their results are unscoped rather than empty. Each provider declares this as `location_filtering` in `jobscout_list_sources`.
+- `warnings` names providers that returned degraded results — a stale cached copy after a rate limit, for example. A warning is not a failure: the results are real but thinner or older than a healthy run.
+- `records_rejected_by_provider` attributes dropped records to the source that produced them. The aggregate says something drifted; only the breakdown says where to look. `undated_records` stays aggregate, because a deduplicated record can carry provenance from several sources at once and attributing it to one would be a guess.
+
+## Caching
+
+Providers that download a whole feed share a short-lived response cache keyed by URL, so several searches in one conversation cost one fetch rather than several. Entries hold public listings only — never anything about the person searching. Configure with `JOBSCOUT_FEED_CACHE_TTL_MS` (default 300000, `0` disables, clamped to one hour).
+
+A past-freshness copy is retained briefly beyond the TTL and served if the source rate-limits or times out, always accompanied by a warning. Non-transient failures such as a 404 are never answered from cache: that would hide a misconfigured URL indefinitely.
+
 ## URL semantics
 
 Every record can carry two different kinds of link, and consumers should not conflate them:
@@ -26,6 +40,25 @@ Every record can carry two different kinds of link, and consumers should not con
 ## Himalayas
 
 Uses the public remote MCP endpoint when explicitly enabled. The adapter requests `search_jobs`; authenticated profile or tracker tools are outside scope.
+
+## We Work Remotely
+
+Uses the public We Work Remotely RSS feed (`https://weworkremotely.com/remote-jobs.rss` by default). No authentication and no rate-limit concerns beyond normal RSS fetching, but RSS has no keyword search endpoint, so JobScout downloads the feed and filters by `query` client-side rather than sending the query to We Work Remotely.
+
+Set `WWR_RSS_URL` to a category-specific feed (for example `https://weworkremotely.com/categories/remote-programming-jobs.rss`) to narrow what gets fetched instead of the combined feed.
+
+Item titles on this feed follow a "Company: Job title" convention; a listing that omits the colon is recorded with company `Unknown` rather than dropped.
+
+## RemoteOK
+
+Uses the public JSON endpoint (`https://remoteok.com/api` by default, overridable with `REMOTEOK_API_URL`). No authentication. The endpoint returns the latest listings rather than answering a keyword query, so JobScout filters and ranks client-side.
+
+Two behaviours are worth knowing:
+
+- **Attribution.** RemoteOK's API terms ask for a link back to the listing. The feed carries this as a notice object in the first array position, which JobScout skips as metadata. Every record keeps its `provenance[].discovery_url`, so attribution is available wherever results are republished.
+- **Apply links.** RemoteOK's `apply_url` is often a redirect on its own domain. Those are recorded as provenance only and never as `canonical_url`, because that field means the employer's application route and is the primary deduplication identity — treating a redirect as canonical would both imply employer endorsement and give each listing an identity that could never merge with the same vacancy from another source. An `apply_url` pointing at a genuine employer domain is kept as `canonical_url`.
+
+Salary figures are published as bare numbers with no currency field, so they are passed through without a currency rather than assuming one.
 
 ## JobSpy
 

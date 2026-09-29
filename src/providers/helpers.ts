@@ -4,6 +4,62 @@ import type { NormalizedJob, ProviderSearchResult } from "../types.js";
 
 export type UnknownRecord = Record<string, unknown>;
 
+const namedEntities = new Map([
+  ["amp", "&"],
+  ["lt", "<"],
+  ["gt", ">"],
+  ["quot", "\""],
+  ["apos", "'"],
+  ["nbsp", " "],
+]);
+
+export function decodeEntities(value: string): string {
+  return value.replace(/&(#x?[0-9a-f]+|[a-z]+);/giu, (match, body: string) => {
+    const token = body.toLocaleLowerCase("en");
+    if (!token.startsWith("#")) return namedEntities.get(token) ?? match;
+    const codePoint = token.startsWith("#x")
+      ? Number.parseInt(token.slice(2), 16)
+      : Number.parseInt(token.slice(1), 10);
+    if (!Number.isFinite(codePoint) || codePoint <= 0 || codePoint > 0x10_ff_ff) return match;
+    try {
+      return String.fromCodePoint(codePoint);
+    } catch {
+      return match;
+    }
+  });
+}
+
+/**
+ * Reduce source markup to plain text.
+ *
+ * Tags are stripped before entities are decoded, never the other way around. A listing
+ * containing the literal text `&lt;script&gt;` is quoting markup, not carrying it; decoding
+ * first would manufacture a real tag out of escaped prose and then hand it downstream as
+ * though the source had published it.
+ */
+export function plainText(value: string): string {
+  return decodeEntities(value.replace(/<[^>]+>/gu, " ")).replace(/\s+/gu, " ").trim();
+}
+
+export function queryTerms(query: string): string[] {
+  return query.trim().toLocaleLowerCase("en").split(/\s+/u).filter(Boolean);
+}
+
+/**
+ * How many of the query's terms a listing mentions; zero means it is not a match at all.
+ *
+ * Sources that expose no keyword search (a whole-feed RSS download, a "latest jobs" JSON
+ * endpoint) are filtered here instead. Plain OR matching would let a two-word query match a
+ * large share of everything on either word, and the caller's `limit` then truncates that set in
+ * source order — so a search for "product manager" could return nothing but unrelated managers.
+ * Scoring lets the caller rank before it truncates. An empty query matches everything.
+ */
+export function relevanceScore(parts: Array<string | undefined>, terms: string[]): number {
+  if (!terms.length) return 1;
+  const haystack = parts.filter(Boolean).join(" ").toLocaleLowerCase("en");
+  return terms.filter((term) => haystack.includes(term)).length;
+}
+
 export function record(value: unknown): UnknownRecord | undefined {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as UnknownRecord : undefined;
 }

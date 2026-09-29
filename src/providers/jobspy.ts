@@ -27,6 +27,7 @@ export class JobSpyProvider implements JobProvider {
       transport: "subprocess",
       coverage: ["general", "ai", "web3"],
       optional_dependency: "python-jobspy",
+      location_filtering: "provider",
       notes: `Optional scraper dependency. When enabled, sends automated requests from this machine to: ${this.sites.join(", ")}. Configure with JOBSPY_SITES. Indeed results are country-scoped via JOBSPY_COUNTRY (currently ${this.country ?? "the python-jobspy default"}). You are responsible for each site's terms of use.`,
     };
   }
