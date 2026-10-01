@@ -52,7 +52,7 @@ function sanitizeUntrustedText(value: string): { text: string; truncated: boolea
 }
 
 function identityPart(value: string): string {
-  return compact(value).toLocaleLowerCase("en").replace(/[^a-z0-9]+/gu, " ").trim();
+  return compact(value).toLocaleLowerCase("en").replace(/[^\p{L}\p{N}+#]+/gu, " ").trim();
 }
 
 const trackingParameters = new Set(["fbclid", "gclid", "ref", "referrer", "source", "utm_campaign", "utm_content", "utm_medium", "utm_source", "utm_term"]);
@@ -84,43 +84,19 @@ function textIdentity(job: Omit<NormalizedJob, "id"> | NormalizedJob): string {
   return ["job", identityPart(job.company), identityPart(job.title), location].join(":");
 }
 
-/**
- * Every identity a record can be recognised by.
- *
- * Previously a record had exactly one key: the URL key when it had a canonical_url, the text
- * key otherwise. Those two key spaces never met, so the same vacancy from two providers could
- * not merge. That is not hypothetical: Himalayas supplies its listing as job_url, which maps
- * to discovery_url only and never populates canonical_url, while python-jobspy rows carrying
- * job_url_direct always do. The design was inverted, excluding the provider with better data
- * from text matching. Emitting both keys and unioning the buckets is the fix.
- */
-function identityKeys(job: Omit<NormalizedJob, "id"> | NormalizedJob): string[] {
-  const keys = [textIdentity(job)];
-  if (job.canonical_url) keys.unshift(urlIdentity(job.canonical_url));
-  return keys;
-}
-
 function primaryIdentity(job: Omit<NormalizedJob, "id"> | NormalizedJob): string {
   return job.canonical_url ? urlIdentity(job.canonical_url) : textIdentity(job);
 }
 
-/**
- * Whether two records may be merged at all.
- *
- * A shared URL alone is not sufficient. canonical_url comes from provider-controlled fields
- * with only a protocol check, so two records can collide on it while naming different
- * employers. Merging them publishes one listing's text under the other's name, and because the
- * merge keeps the left record's title and company but the longer description, both orderings
- * are wrong.
- *
- * Legitimate variation must still merge: "Example" and "Example Inc." are the same employer
- * spelled differently by two boards, so a prefix relationship counts as agreement.
- */
+/** Only known legal suffixes may differ; arbitrary employer-name prefixes are unsafe. */
+function companyIdentity(value: string): string {
+  const normalized = identityPart(value);
+  return normalized.replace(/(?: (?:inc|incorporated|ltd|limited|llc|plc|corp|corporation))+$/u, "");
+}
+
 function companiesAgree(left: { company: string }, right: { company: string }): boolean {
-  const a = identityPart(left.company);
-  const b = identityPart(right.company);
-  if (!a || !b) return true;
-  return a === b || a.startsWith(`${b} `) || b.startsWith(`${a} `);
+  const a = companyIdentity(left.company);
+  return Boolean(a) && a === companyIdentity(right.company);
 }
 
 export function fingerprint(job: Omit<NormalizedJob, "id"> | NormalizedJob): string {
@@ -135,7 +111,7 @@ export function normalizeJob(job: Omit<NormalizedJob, "id"> & { id?: string }): 
     company: compact(job.company),
     location: compact(job.location || "Unknown"),
     tags: [...new Set(job.tags.map(compact).filter(Boolean))],
-    ...(description ? { description: description.text, description_truncated: description.truncated } : {}),
+    ...(description ? { description: description.text, description_truncated: description.truncated || job.description_truncated === true } : {}),
     ...(job.canonical_url ? { canonical_url: canonicalizeUrl(job.canonical_url) } : {}),
   };
   return normalizedJobSchema.parse({
@@ -161,6 +137,8 @@ function mergeJobs(left: NormalizedJob, right: NormalizedJob): NormalizedJob {
     ...left,
     id: fingerprint(left),
     description: chooseText(left.description, right.description),
+    description_truncated: (right.description?.length ?? 0) > (left.description?.length ?? 0)
+      ? right.description_truncated : left.description_truncated,
     canonical_url: left.canonical_url ?? right.canonical_url,
     date_posted: left.date_posted ?? right.date_posted,
     employment_type: left.employment_type ?? right.employment_type,
@@ -173,61 +151,59 @@ function mergeJobs(left: NormalizedJob, right: NormalizedJob): NormalizedJob {
 }
 
 export function deduplicateJobs(input: NormalizedJob[]): NormalizedJob[] {
-  // Clusters are sparse: an entry becomes undefined once it has been absorbed into another.
-  const clusters: Array<NormalizedJob | undefined> = [];
-  const owner = new Map<string, number>();
+  interface Cluster { job: NormalizedJob; textKeys: Set<string>; first: number }
+  const clusters: Cluster[] = [];
+  const textOnly = new Map<string, Cluster>();
+  const records = input.map((job) => normalizeJob(job));
 
-  const claim = (keys: string[], index: number): void => {
-    for (const key of keys) if (!owner.has(key)) owner.set(key, index);
-  };
-
-  for (const candidate of input.map((job) => normalizeJob(job))) {
-    const keys = identityKeys(candidate);
-    const mergeable = new Set<number>();
-    const conflicting = new Set<number>();
-
-    for (const key of keys) {
-      const index = owner.get(key);
-      if (index === undefined) continue;
-      const cluster = clusters[index];
-      if (!cluster) continue;
-      if (companiesAgree(cluster, candidate)) mergeable.add(index);
-      else conflicting.add(index);
-    }
-
-    if (mergeable.size === 0) {
-      const index = clusters.length;
-      const conflicted = conflicting.size > 0;
-      clusters.push(conflicted ? { ...candidate, duplicate_conflict: true } : candidate);
-      // Flag the records it collided with too: the ambiguity belongs to both sides.
-      for (const other of conflicting) {
-        const cluster = clusters[other];
-        if (cluster) clusters[other] = { ...cluster, duplicate_conflict: true };
-      }
-      claim(keys, index);
-      // A conflicting key is already owned, so also register company-qualified keys. Without
-      // this a third record from the same employer could never find this cluster.
-      if (conflicted) claim(keys.map((key) => `${key}|${identityPart(candidate.company)}`), index);
+  // Resolve direct-URL identities first. A text-only record must never bridge two
+  // different requisitions, irrespective of which provider finished first.
+  for (const [index, candidate] of records.entries()) {
+    const textKey = textIdentity(candidate);
+    if (!candidate.canonical_url) {
+      const existing = textOnly.get(textKey);
+      if (existing) existing.job = mergeJobs(existing.job, candidate);
+      else textOnly.set(textKey, {job: candidate, textKeys: new Set([textKey]), first: index});
       continue;
     }
-
-    const ordered = [...mergeable].sort((left, right) => left - right);
-    const primary = ordered[0];
-    const existing = primary === undefined ? undefined : clusters[primary];
-    if (primary === undefined || !existing) continue;
-    const rest = ordered.slice(1);
-    let merged = mergeJobs(existing, candidate);
-    for (const other of rest) {
-      const cluster = clusters[other];
-      if (!cluster) continue;
-      merged = mergeJobs(merged, cluster);
-      clusters[other] = undefined;
+    const urlKey = urlIdentity(candidate.canonical_url);
+    const sameUrl = clusters.filter(cluster => urlIdentity(cluster.job.canonical_url!) === urlKey);
+    const existing = sameUrl.find(cluster => companiesAgree(cluster.job, candidate));
+    if (existing) {
+      existing.job = mergeJobs(existing.job, candidate);
+      existing.textKeys.add(textKey);
+    } else {
+      clusters.push({job: candidate, textKeys: new Set([textKey]), first: index});
     }
-    // A record can bridge two clusters that were previously unrelated, so repoint their keys.
-    for (const [key, index] of owner) if (rest.includes(index)) owner.set(key, primary);
-    clusters[primary] = merged;
-    claim([...keys, ...identityKeys(merged)], primary);
+    if (sameUrl.some(cluster => !companiesAgree(cluster.job, candidate))) {
+      for (const cluster of clusters) {
+        if (urlIdentity(cluster.job.canonical_url!) === urlKey) cluster.job.duplicate_conflict = true;
+      }
+    }
   }
 
-  return clusters.filter((job): job is NormalizedJob => job !== undefined);
+  const unmatched: Cluster[] = [];
+  for (const [key, candidate] of textOnly) {
+    const matches = clusters.filter(cluster => cluster.textKeys.has(key) && companiesAgree(cluster.job, candidate.job));
+    const match = matches[0];
+    if (matches.length === 1 && match) {
+      match.job = mergeJobs(match.job, candidate.job);
+      match.first = Math.min(match.first, candidate.first);
+    } else {
+      if (matches.length > 1) {
+        candidate.job.duplicate_conflict = true;
+        for (const cluster of matches) cluster.job.duplicate_conflict = true;
+      }
+      unmatched.push(candidate);
+    }
+  }
+
+  const result = [...clusters, ...unmatched].sort((a, b) => a.first - b.first).map(cluster => cluster.job);
+  // Conflicting employers can share a source-supplied URL. Keep both records
+  // addressable instead of returning duplicate ids under different names.
+  const counts = new Map<string, number>();
+  for (const job of result) counts.set(job.id, (counts.get(job.id) ?? 0) + 1);
+  return result.map(job => (counts.get(job.id) ?? 0) > 1
+    ? {...job, id: createHash("sha256").update(`${job.id}|${companyIdentity(job.company)}`).digest("hex")}
+    : job);
 }

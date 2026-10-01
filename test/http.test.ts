@@ -101,3 +101,30 @@ void test("rejects an oversized body", async () => {
   const { fetcher } = counter(() => jsonResponse("x".repeat(200)));
   await assert.rejects(fetchTextResource({ ...base, maxBytes: 100, fetcher }), /safety limit/u);
 });
+
+void test("stops a chunked response at the byte cap instead of buffering the whole stream", async () => {
+  let pulls = 0;
+  let cancelled = false;
+  const response = new Response(new ReadableStream<Uint8Array>({
+    pull(controller) {
+      pulls += 1;
+      if (pulls > 100) controller.close();
+      else controller.enqueue(new Uint8Array(64));
+    },
+    cancel() { cancelled = true; },
+  }));
+  const fetcher = (async () => response) as typeof fetch;
+  await assert.rejects(fetchTextResource({...base, fetcher, maxBytes: 100}), /safety limit/u);
+  assert(pulls < 5, `read ${pulls} chunks after exceeding the cap`);
+  assert(cancelled, "the unread body must be cancelled");
+});
+
+void test("streaming preserves UTF-8 characters split across chunks", async () => {
+  const bytes = new TextEncoder().encode("€ café");
+  const response = new Response(new ReadableStream<Uint8Array>({start(controller) {
+    for (const byte of bytes) controller.enqueue(Uint8Array.of(byte));
+    controller.close();
+  }}));
+  const result = await fetchTextResource({...base, maxBytes: bytes.length, fetcher: (async () => response) as typeof fetch});
+  assert.equal(result.body, "€ café");
+});
