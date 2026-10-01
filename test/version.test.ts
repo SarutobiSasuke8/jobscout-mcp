@@ -11,4 +11,9 @@ void test("the exported version matches the package manifest", () => {
   const manifestPath = fileURLToPath(new URL("../../package.json", import.meta.url));
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { version?: string };
   assert.equal(VERSION, manifest.version);
+  const registry = JSON.parse(readFileSync(fileURLToPath(new URL("../../server.json", import.meta.url)), "utf8")) as {
+    version: string; packages: Array<{version: string}>;
+  };
+  assert.equal(registry.version, manifest.version, "registry version must match the package");
+  for (const artifact of registry.packages) assert.equal(artifact.version, manifest.version);
 });

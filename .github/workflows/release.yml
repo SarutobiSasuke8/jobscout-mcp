@@ -53,3 +53,38 @@ jobs:
       # breaking on every future rename or token expiry. Delete the NPM_TOKEN repo secret once
       # this has published successfully once.
       - run: npm publish --access public
+
+  registry:
+    name: Publish matching MCP Registry entry
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Wait for the exact npm version
+        run: |
+          PACKAGE="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          for i in $(seq 1 18); do
+            if [ "$(npm view "$PACKAGE@$VERSION" version 2>/dev/null)" = "$VERSION" ]; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "npm did not serve the released version" >&2
+          exit 1
+      - name: Install MCP publisher
+        run: |
+          curl --fail --location --retry 3 --output publisher.tar.gz "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz"
+          tar xzf publisher.tar.gz mcp-publisher
+      - name: Validate registry manifest
+        run: ./mcp-publisher validate
+      - name: Authenticate with GitHub OIDC
+        run: ./mcp-publisher login github-oidc
+      - name: Publish registry entry
+        run: ./mcp-publisher publish

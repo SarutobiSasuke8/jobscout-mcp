@@ -128,6 +128,7 @@ export async function fetchTextResource(options: {
   }
 
   if (!response.ok) {
+    await response.body?.cancel().catch(() => undefined);
     if (isTransient(response.status)) {
       const recovered = fallback(`HTTP ${response.status}`);
       if (recovered) return recovered;
@@ -135,9 +136,31 @@ export async function fetchTextResource(options: {
     throw new Error(`${label} HTTP ${response.status}`);
   }
 
-  if (Number(response.headers.get("content-length") ?? 0) > maxBytes) throw oversize();
-  const body = await response.text();
-  if (Buffer.byteLength(body, "utf8") > maxBytes) throw oversize();
+  if (Number(response.headers.get("content-length") ?? 0) > maxBytes) {
+    await response.body?.cancel().catch(() => undefined);
+    throw oversize();
+  }
+  // Enforce the cap while reading. Content-Length may be absent, inaccurate or
+  // describe compressed bytes, so checking after response.text() is too late.
+  let body = "";
+  let bytes = 0;
+  const reader = response.body?.getReader();
+  if (reader) {
+    const decoder = new TextDecoder();
+    try {
+      for (;;) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        bytes += chunk.value.byteLength;
+        if (bytes > maxBytes) throw oversize();
+        body += decoder.decode(chunk.value, {stream: true});
+      }
+      body += decoder.decode();
+    } finally {
+      await reader.cancel().catch(() => undefined);
+      reader.releaseLock();
+    }
+  }
 
   cache?.set(url, body);
   return { body, warnings: [] };
