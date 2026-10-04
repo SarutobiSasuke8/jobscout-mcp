@@ -110,8 +110,7 @@ export async function fetchTextResource(options: {
   const cached = cache?.fresh(url);
   if (cached !== undefined) return { body: cached, warnings: [] };
 
-  const oversize = (): Error => new Error(`${label} response exceeded the ${Math.round(maxBytes / 1_000_000)} MB safety limit.`);
-  const fallback = (reason: string): FetchTextResult | undefined => {
+  const fallback =(reason: string): FetchTextResult | undefined => {
     const stale = cache?.stale(url);
     if (stale === undefined) return undefined;
     return { body: stale, warnings: [`${label}: ${reason}; served the last cached copy, which may be out of date.`] };
@@ -136,12 +135,23 @@ export async function fetchTextResource(options: {
     throw new Error(`${label} HTTP ${response.status}`);
   }
 
+  const body = await readBoundedText(response, maxBytes, label);
+  cache?.set(url, body);
+  return { body, warnings: [] };
+}
+
+/**
+ * Read a response body as text, failing as soon as it passes `maxBytes`.
+ *
+ * Content-Length may be absent, inaccurate or describe compressed bytes, so the cap is
+ * enforced while reading; checking after response.text() is too late.
+ */
+export async function readBoundedText(response: Response, maxBytes: number, label: string): Promise<string> {
+  const oversize = (): Error => new Error(`${label} response exceeded the ${Math.round(maxBytes / 1_000_000)} MB safety limit.`);
   if (Number(response.headers.get("content-length") ?? 0) > maxBytes) {
     await response.body?.cancel().catch(() => undefined);
     throw oversize();
   }
-  // Enforce the cap while reading. Content-Length may be absent, inaccurate or
-  // describe compressed bytes, so checking after response.text() is too late.
   let body = "";
   let bytes = 0;
   const reader = response.body?.getReader();
@@ -161,7 +171,5 @@ export async function fetchTextResource(options: {
       reader.releaseLock();
     }
   }
-
-  cache?.set(url, body);
-  return { body, warnings: [] };
+  return body;
 }

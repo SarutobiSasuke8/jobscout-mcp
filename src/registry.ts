@@ -1,6 +1,7 @@
 import { deduplicateJobs } from "./core.js";
 import { ResponseCache } from "./providers/http.js";
 import { HimalayasProvider } from "./providers/himalayas.js";
+import { LennysJobsProvider, defaultEndpoint, defaultPartnerId, defaultSiteUrl } from "./providers/lennysjobs.js";
 import { JobSpyProvider } from "./providers/jobspy.js";
 import { RemoteOkProvider } from "./providers/remoteok.js";
 import { WeWorkRemotelyProvider } from "./providers/weworkremotely.js";
@@ -159,6 +160,13 @@ export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.
       environment.REMOTEOK_API_URL ?? "https://remoteok.com/api",
       fetch,
       cache,
+    ),
+    new LennysJobsProvider(
+      enabled(environment.JOBSCOUT_ENABLE_LENNYSJOBS),
+      environment.LENNYSJOBS_ENDPOINT?.trim() || defaultEndpoint,
+      environment.LENNYSJOBS_PARTNER_ID?.trim() || defaultPartnerId,
+      environment.LENNYSJOBS_SITE_URL?.trim() || defaultSiteUrl,
+      Math.max(1_000, Math.min(60_000, Number(environment.LENNYSJOBS_TIMEOUT_MS ?? 20_000) || 20_000)),
     ),
   ]);
 }
