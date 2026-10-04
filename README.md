@@ -29,6 +29,7 @@ JobScout deliberately stops at trustworthy discovery. It does not store CVs, ran
 | `jobscout_classify_jobs` | Detect AI, agentic and Web3 signals in supplied jobs | No |
 | `jobscout_deduplicate` | Normalize and merge supplied JobScout records | No |
 | `jobscout_briefing` | Project records into briefing-ready entries with a compact `one_line` and best link | No |
+| `jobscout_source_yield` | Report what each source contributed: unique finds, overlap, employer-route coverage, undated records, conflicts | No |
 
 Two MCP prompts guide first-run use without the server storing anything: `jobscout_setup` walks through enabling providers and what each one contacts; `jobscout_find_jobs` gathers role, location and remote preference per search. A search run with zero enabled providers returns `setup_required: true` with guidance instead of a misleading empty result, and results report `providers_disabled`, `records_rejected` (with a `records_rejected_by_provider` breakdown), `undated_records`, `location_unfiltered` and `warnings` so thin results are always explained. `require_dated` and `include_descriptions` let a caller trade recall for certainty, or drop the untrusted description text it does not need.
 
@@ -63,6 +64,7 @@ Providers are disabled by default and failures are isolated.
 | Himalayas | Remote MCP | Optional | Public job search; employer route should still be verified |
 | We Work Remotely | Public RSS feed | None | No keyword search endpoint; results filtered client-side |
 | RemoteOK | Public JSON endpoint | None | Latest-listings feed filtered client-side; attribution requested by its API terms |
+| Lenny's Job Board | HTTP search API | None | Product, growth, design and engineering roles via TrueUp's undocumented endpoint; board links are discovery URLs |
 | JobSpy | Local Python subprocess | None | Optional `python-jobspy`; availability and site terms vary |
 
 The provider contract supports future official ATS and specialist job-board adapters without coupling the core to any one vendor. See [provider documentation](docs/PROVIDERS.md).
