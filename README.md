@@ -55,6 +55,24 @@ npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
 
 See [installation](docs/INSTALLATION.md) for Claude Desktop, Cursor, local development, JobSpy, and troubleshooting.
 
+## Install in ChatGPT, Codex and Claude
+
+JobScout runs two ways: locally over stdio (works today), or as a hosted Streamable HTTP server (code and package ready, not yet deployed).
+
+### Local, works today
+
+- **Codex:** `codex mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=@sarutobi-sasuke/jobscout-mcp -- jobscout-mcp`
+- **Claude Code:** `claude mcp add jobscout --env JOBSCOUT_ENABLE_HIMALAYAS=true -- npm exec --yes --package=@sarutobi-sasuke/jobscout-mcp -- jobscout-mcp`
+- **Claude Desktop, Cursor and other JSON hosts:** see [installation](docs/INSTALLATION.md).
+
+### ChatGPT and Codex plugin (JobScout Discover)
+
+The directory package is in [`plugins/jobscout-discover`](plugins/jobscout-discover) and follows [OpenAI's plugin format](https://developers.openai.com/plugins/build/plugins). It is **not yet listed**: it needs a public HTTPS deployment, OAuth for existing-account sign-in, a demo account and a portal submission. Everything else is drafted. See [JobScout Discover](docs/discover/README.md) for the review materials and the full list of gaps, and [deployment](docs/DEPLOYMENT.md) for the hosted server.
+
+Once a deployment URL exists, a ChatGPT developer-mode connector or a Claude custom connector can point at its `/mcp` endpoint, and Claude Code can use `claude mcp add --transport http jobscout <url>`. Until then, use the local install above.
+
+Plans are sold only on the operator's own site. There is no in-chat checkout. See [monetisation](docs/MONETISATION.md).
+
 ## Providers
 
 Providers are disabled by default and failures are isolated.
@@ -97,6 +115,7 @@ npm install
 cp .env.example .env
 npm run check
 npm run smoke:mcp
+npm run check:plugin
 ```
 
 The protocol smoke test uses the official MCP Inspector. Provider contributions must include fixtures, failure behavior, provenance handling, and tests; see [CONTRIBUTING.md](CONTRIBUTING.md).

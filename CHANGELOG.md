@@ -4,6 +4,10 @@
 
 ### Added
 
+- Streamable HTTP entrypoint (`jobscout-mcp-http`, `npm run start:http`) with a `/health` endpoint, stateless per-request serving, an optional shared bearer token and JobSpy forced off when hosted
+- `Dockerfile` for the hosted build (written, image build not yet run)
+- JobScout Discover plugin package in `plugins/jobscout-discover` (manifest, `mcp.json`, two skills) with a local structural validator, `npm run check:plugin`
+- Review materials in `docs/discover/` (privacy and terms drafts, demo-account template, 5 positive and 3 negative test cases, walkthrough), `docs/DEPLOYMENT.md` and `docs/MONETISATION.md`
 - We Work Remotely provider, opt-in behind `JOBSCOUT_ENABLE_WEWORKREMOTELY`, reading the public RSS feed configured by `WWR_RSS_URL`
 - RemoteOK provider, opt-in behind `JOBSCOUT_ENABLE_REMOTEOK`, reading the public JSON endpoint configured by `REMOTEOK_API_URL`
 - shared provider text helpers for markup reduction, entity decoding, and client-side query ranking
