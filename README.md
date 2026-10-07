@@ -105,7 +105,7 @@ The protocol smoke test uses the official MCP Inspector. Provider contributions 
 
 The next release includes more conservative duplicate handling and streaming feed-size limits. See [reliability evidence and remaining gates](docs/RELIABILITY.md). These changes are unreleased until a new version is tagged and published.
 
-Live on npm as [`@sarutobi-sasuke/jobscout-mcp`](https://www.npmjs.com/package/@sarutobi-sasuke/jobscout-mcp) and on the official MCP Registry as `io.github.SarutobiSasuke8/jobscout-mcp`. Releases are tagged `vX.Y.Z` on GitHub; CI publishes to npm with provenance.
+Live on npm as [`@sarutobi-sasuke/jobscout-mcp`](https://www.npmjs.com/package/@sarutobi-sasuke/jobscout-mcp) and on the official MCP Registry as `io.github.SarutobiSasuke8/jobscout-mcp`. Releases are tagged `vX.Y.Z` on GitHub; CI publishes to npm with provenance. See [RELEASING.md](RELEASING.md) for the release process and rollback order.
 
 ## Prior art and licence
 
