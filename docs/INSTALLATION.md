@@ -45,6 +45,10 @@ npm exec --yes --package=github:SarutobiSasuke8/jobscout-mcp -- jobscout-mcp
 
 On Windows, use `npm.cmd` if the host does not resolve `npm` automatically. A cold GitHub install can take tens of seconds; the npm package above is faster for repeated setup. Cursor can use the same JSON server entry in its MCP configuration.
 
+## Hosted Streamable HTTP
+
+For a hosted deployment and the ChatGPT or Codex plugin, see [deployment](DEPLOYMENT.md) and [JobScout Discover](discover/README.md).
+
 ## Local development
 
 ```bash

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "jobscout-discover",
+  "version": "0.1.0",
+  "description": "Multi-source job discovery with deduplication and source provenance. Search, merge and brief job listings without ranking, auto-apply or CV storage.",
+  "author": {
+    "name": "JobScout MCP maintainers",
+    "url": "https://github.com/SarutobiSasuke8/jobscout-mcp"
+  },
+  "homepage": "https://jobscout.example.com",
+  "repository": "https://github.com/SarutobiSasuke8/jobscout-mcp",
+  "license": "Apache-2.0",
+  "keywords": ["jobs", "job-search", "remote-jobs", "mcp", "provenance"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "JobScout Discover",
+        "shortDescription": "Find jobs across several sources, deduplicated, with provenance.",
+        "longDescription": "JobScout Discover searches the job sources the operator has enabled, merges duplicate listings into one pool, and shows where each listing was found. It does not rank jobs for you, store your CV, contact employers or apply on your behalf. Every listing keeps a link back to its source so you can verify it before you spend time on it.",
+        "developerName": "JobScout MCP maintainers",
+        "category": "Productivity",
+        "capabilities": ["Read"],
+        "websiteURL": "https://jobscout.example.com",
+        "privacyPolicyURL": "https://jobscout.example.com/privacy",
+        "termsOfServiceURL": "https://jobscout.example.com/terms",
+        "defaultPrompt": [
+          "Find remote product design roles posted in the last week.",
+          "Search for AI engineer jobs and show where each listing came from.",
+          "Which of these listings are the same job posted twice?"
+        ]
+      }
+    }
+  }
+}

@@ -21,7 +21,8 @@
     "node": ">=22.13"
   },
   "bin": {
-    "jobscout-mcp": "dist/src/stdio.js"
+    "jobscout-mcp": "dist/src/stdio.js",
+    "jobscout-mcp-http": "dist/src/http-server.js"
   },
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -42,14 +43,17 @@
     "dev": "node --env-file-if-exists=.env --import tsx src/stdio.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/src/stdio.js",
+    "start:http": "node --env-file-if-exists=.env dist/src/http-server.js",
+    "dev:http": "node --env-file-if-exists=.env --import tsx src/http-server.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "npm run build && node --test \"dist/test/*.test.js\"",
-    "check": "npm run typecheck && npm run lint && npm run check:boundary && npm test",
+    "check": "npm run typecheck && npm run lint && npm run check:boundary && npm run check:plugin && npm test",
     "pack:check": "npm pack --dry-run",
     "smoke:mcp": "npx -y @modelcontextprotocol/inspector@2.1.0 --cli node dist/src/stdio.js --method tools/list",
     "prepare": "npm run build",
-    "check:boundary": "node scripts/check-boundary.mjs"
+    "check:boundary": "node scripts/check-boundary.mjs",
+    "check:plugin": "node scripts/check-plugin.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.2.0",
