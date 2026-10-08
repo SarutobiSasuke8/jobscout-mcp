@@ -1,0 +1,36 @@
+{
+  "jobs": [
+    {
+      "index": 0,
+      "signals": {
+        "categories": [
+          "ai-infrastructure",
+          "web3-protocols"
+        ],
+        "confidence": "high",
+        "domains": [
+          "ai",
+          "web3"
+        ],
+        "matched_terms": [
+          "llm",
+          "web3",
+          "ai"
+        ],
+        "technologies": [
+          "LLMs"
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "signals": {
+        "categories": [],
+        "confidence": "none",
+        "domains": [],
+        "matched_terms": [],
+        "technologies": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "sources": [
+    {
+      "authentication": "optional",
+      "coverage": [
+        "general",
+        "ai",
+        "web3"
+      ],
+      "enabled": false,
+      "id": "himalayas",
+      "label": "Himalayas MCP",
+      "location_filtering": "provider",
+      "notes": "Public search only. Canonical employer links may require separate verification.",
+      "transport": "remote-mcp"
+    },
+    {
+      "authentication": "none",
+      "coverage": [
+        "general",
+        "ai",
+        "web3"
+      ],
+      "enabled": false,
+      "id": "jobspy",
+      "label": "JobSpy",
+      "location_filtering": "provider",
+      "notes": "Optional scraper dependency. When enabled, sends automated requests from this machine to: indeed. Configure with JOBSPY_SITES. Indeed results are country-scoped via JOBSPY_COUNTRY (currently the python-jobspy default). You are responsible for each site's terms of use.",
+      "optional_dependency": "python-jobspy",
+      "transport": "subprocess"
+    },
+    {
+      "authentication": "none",
+      "coverage": [
+        "general"
+      ],
+      "enabled": false,
+      "id": "weworkremotely",
+      "label": "We Work Remotely",
+      "location_filtering": "none",
+      "notes": "Public RSS feed, fetched in full and filtered client-side because RSS exposes no keyword search, and not scoped by location. Currently reading http://127.0.0.1:9/remote-jobs.rss; set WWR_RSS_URL to a category feed to narrow it.",
+      "transport": "http-api"
+    },
+    {
+      "authentication": "none",
+      "coverage": [
+        "general",
+        "ai",
+        "web3"
+      ],
+      "enabled": false,
+      "id": "remoteok",
+      "label": "RemoteOK",
+      "location_filtering": "none",
+      "notes": "Public JSON endpoint returning the latest listings; the query is applied client-side because the endpoint offers no keyword search, and it is not scoped by location. RemoteOK's API terms ask for attribution back to the listing, so keep the discovery URL when republishing. Apply links on RemoteOK's own domain are recorded as provenance, not as employer application routes.",
+      "transport": "http-api"
+    },
+    {
+      "authentication": "none",
+      "coverage": [
+        "general",
+        "ai"
+      ],
+      "enabled": false,
+      "id": "lennysjobs",
+      "label": "Lenny's Job Board",
+      "notes": "Queries TrueUp's search endpoint, which powers the board, scoped to partner \"lenny\". This is an undocumented third-party endpoint rather than a published API: it can change or stop without notice, and enabling it is your decision. Board links are discovery URLs; resolve the employer or ATS listing before applying.",
+      "transport": "http-api"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "company": "Example Labs",
+      "location": "Remote, EU",
+      "one_line": "Platform Engineer at Example Labs, Remote, EU, remote",
+      "remote": true,
+      "title": "Platform Engineer",
+      "url": "https://example.com/jobs/platform-engineer",
+      "url_kind": "canonical"
+    }
+  ]
+}

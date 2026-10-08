@@ -51,6 +51,7 @@
     "check": "npm run typecheck && npm run lint && npm run check:boundary && npm run check:plugin && npm test",
     "pack:check": "npm pack --dry-run",
     "smoke:mcp": "npx -y @modelcontextprotocol/inspector@2.1.0 --cli node dist/src/stdio.js --method tools/list",
+    "eval:contract": "npm run build && mcp-eval eval/mcp.suite.yaml",
     "prepare": "npm run build",
     "check:boundary": "node scripts/check-boundary.mjs",
     "check:plugin": "node scripts/check-plugin.mjs"
@@ -61,6 +62,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.39.2",
+    "@sarutobi-sasuke/mcp-eval-harness": "github:SarutobiSasuke8/mcp-eval-harness#077c74a60ccd6d9061e35f882ffd3db5f5d17052",
     "@types/node": "22.19.15",
     "eslint": "10.8.0",
     "tsx": "4.20.6",
