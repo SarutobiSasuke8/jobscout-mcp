@@ -1,11 +1,16 @@
 import { deduplicateJobs } from "./core.js";
+import { ashbyVendor, defaultAshbyApiBase } from "./providers/ashby.js";
+import { AtsBoardProvider, maxBoardsPerProvider, resolveBoardList } from "./providers/ats.js";
+import { defaultGreenhouseApiBase, greenhouseVendor } from "./providers/greenhouse.js";
 import { ResponseCache } from "./providers/http.js";
 import { HimalayasProvider } from "./providers/himalayas.js";
 import { LennysJobsProvider, defaultEndpoint, defaultPartnerId, defaultSiteUrl } from "./providers/lennysjobs.js";
 import { JobSpyProvider } from "./providers/jobspy.js";
+import { defaultLeverApiBase, leverVendor } from "./providers/lever.js";
 import { RemoteOkProvider } from "./providers/remoteok.js";
 import { WeWorkRemotelyProvider } from "./providers/weworkremotely.js";
 
+import type { AtsVendor } from "./providers/ats.js";
 import type { JobProvider, ProviderFailure, ProviderStatus, SearchQuery, SearchResult } from "./types.js";
 
 function enabled(value: string | undefined): boolean {
@@ -135,8 +140,36 @@ export function resolveCacheTtlMs(value: string | undefined): number {
   return Math.min(parsed, 60 * 60 * 1_000);
 }
 
+/**
+ * Build one official ATS provider from its environment variables. Off unless both the enable
+ * flag is set and at least one board is listed: these APIs serve one employer per request, so
+ * there is nothing sensible to query without an explicit list.
+ */
+export function createAtsProvider(
+  vendor: AtsVendor,
+  defaultBase: string,
+  environment: NodeJS.ProcessEnv,
+  cache?: ResponseCache,
+  fetcher: typeof fetch = fetch,
+): AtsBoardProvider {
+  const { boards, ignored } = resolveBoardList(environment[vendor.boardsVariable]);
+  return new AtsBoardProvider(
+    vendor,
+    enabled(environment[vendor.enableVariable]),
+    boards,
+    ignored,
+    environment[vendor.baseVariable]?.trim() || defaultBase,
+    fetcher,
+    cache,
+  );
+}
+
 export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.env): ProviderRegistry {
-  const cache = new ResponseCache(resolveCacheTtlMs(environment.JOBSCOUT_FEED_CACHE_TTL_MS));
+  const ttlMs = resolveCacheTtlMs(environment.JOBSCOUT_FEED_CACHE_TTL_MS);
+  const cache = new ResponseCache(ttlMs);
+  // ATS boards get their own cache sized to the board cap, so a full board list cannot evict the
+  // whole-feed providers' entries (or each other's) within one TTL window.
+  const atsCache = new ResponseCache(ttlMs, undefined, undefined, maxBoardsPerProvider * 3);
   return new ProviderRegistry([
     new HimalayasProvider(
       enabled(environment.JOBSCOUT_ENABLE_HIMALAYAS),
@@ -168,5 +201,8 @@ export function createProviderRegistry(environment: NodeJS.ProcessEnv = process.
       environment.LENNYSJOBS_SITE_URL?.trim() || defaultSiteUrl,
       Math.max(1_000, Math.min(60_000, Number(environment.LENNYSJOBS_TIMEOUT_MS ?? 20_000) || 20_000)),
     ),
+    createAtsProvider(greenhouseVendor, defaultGreenhouseApiBase, environment, atsCache),
+    createAtsProvider(ashbyVendor, defaultAshbyApiBase, environment, atsCache),
+    createAtsProvider(leverVendor, defaultLeverApiBase, environment, atsCache),
   ]);
 }

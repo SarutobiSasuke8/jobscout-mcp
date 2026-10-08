@@ -68,8 +68,69 @@ export function canonicalizeUrl(value: string): string {
   return url.toString();
 }
 
-/** Host-normalised URL identity: www and scheme differences are not different jobs. */
+export interface AtsRequisition {
+  vendor: "greenhouse" | "ashby" | "lever";
+  /** The vendor's requisition id: numeric for Greenhouse, a UUID for Ashby and Lever. */
+  id: string;
+}
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
+const greenhouseHosts = new Set(["boards.greenhouse.io", "job-boards.greenhouse.io", "boards.eu.greenhouse.io", "job-boards.eu.greenhouse.io"]);
+const leverHosts = new Set(["jobs.lever.co", "jobs.eu.lever.co"]);
+
+/**
+ * Recognise an applicant tracking system requisition link, whichever form it arrives in.
+ *
+ * The same Greenhouse job is reachable as `boards.greenhouse.io/acme/jobs/1`,
+ * `job-boards.greenhouse.io/acme/jobs/1?gh_src=x` or the employer's own careers page with
+ * `?gh_jid=1`; a Lever posting as `jobs.lever.co/acme/{uuid}` or `.../{uuid}/apply`; an Ashby one
+ * as `jobs.ashbyhq.com/acme/{uuid}` or `.../{uuid}/application`. Boards copy whichever form they
+ * scraped. Plain URL identity would treat each as a different job, so they are reduced to the
+ * vendor's requisition id, which is what actually identifies the vacancy.
+ */
+export function atsRequisition(value: string): AtsRequisition | undefined {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return undefined;
+  }
+  const host = url.host.toLocaleLowerCase("en").replace(/^www\./u, "");
+  const segments = url.pathname.split("/").filter(Boolean);
+
+  const ghJid = url.searchParams.get("gh_jid");
+  if (ghJid && /^\d{1,20}$/u.test(ghJid)) return { vendor: "greenhouse", id: ghJid };
+  if (greenhouseHosts.has(host)) {
+    const jobs = segments.indexOf("jobs");
+    const id = jobs >= 1 ? segments[jobs + 1] : undefined;
+    if (id && /^\d{1,20}$/u.test(id)) return { vendor: "greenhouse", id };
+    // The embedded application form: /embed/job_app?for={board}&token={job id}.
+    const token = url.searchParams.get("token");
+    if (segments[0] === "embed" && token && /^\d{1,20}$/u.test(token)) return { vendor: "greenhouse", id: token };
+    return undefined;
+  }
+
+  const ashbyJid = url.searchParams.get("ashby_jid")?.toLocaleLowerCase("en");
+  if (ashbyJid && uuidPattern.test(ashbyJid)) return { vendor: "ashby", id: ashbyJid };
+  if (host === "jobs.ashbyhq.com") {
+    const id = segments[1]?.toLocaleLowerCase("en");
+    return id && uuidPattern.test(id) ? { vendor: "ashby", id } : undefined;
+  }
+
+  if (leverHosts.has(host)) {
+    const id = segments[1]?.toLocaleLowerCase("en");
+    return id && uuidPattern.test(id) ? { vendor: "lever", id } : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Host-normalised URL identity: www and scheme differences are not different jobs. ATS
+ * requisition links resolve to the requisition itself, whichever host or suffix they carry.
+ */
 function urlIdentity(value: string): string {
+  const requisition = atsRequisition(value);
+  if (requisition) return `ats:${requisition.vendor}:${requisition.id}`;
   const url = new URL(canonicalizeUrl(value));
   const host = url.host.toLocaleLowerCase("en").replace(/^www\./u, "");
   return `url:${host}${url.pathname}${url.search}`;
@@ -127,7 +188,23 @@ function chooseText(left?: string, right?: string): string | undefined {
   return right.length > left.length ? right : left;
 }
 
-function mergeJobs(left: NormalizedJob, right: NormalizedJob): NormalizedJob {
+/** Providers that read the employer's own applicant tracking system. */
+const atsProviders = new Set(["greenhouse", "ashby", "lever"]);
+
+function fromAtsProvider(job: NormalizedJob): boolean {
+  return job.provenance.some((item) => atsProviders.has(item.provider));
+}
+
+/**
+ * When a board copy and the employer's ATS record describe the same requisition, the ATS record
+ * is first-party: its URL is the canonical employer link and its fields take precedence. A board
+ * that merely links to the ATS keeps its provenance, but never decides which link is canonical.
+ */
+function mergeJobs(first: NormalizedJob, second: NormalizedJob): NormalizedJob {
+  const [left, right] = fromAtsProvider(second) && !fromAtsProvider(first) ? [second, first] : [first, second];
+  const leftAts = left.canonical_url ? atsRequisition(left.canonical_url) : undefined;
+  const rightAts = right.canonical_url ? atsRequisition(right.canonical_url) : undefined;
+  const canonicalUrl = !leftAts && rightAts ? right.canonical_url : left.canonical_url ?? right.canonical_url;
   const provenance = new Map<string, NormalizedJob["provenance"][number]>();
   for (const item of [...left.provenance, ...right.provenance]) {
     provenance.set(`${item.provider}|${item.discovery_url ?? ""}|${item.source_job_id ?? ""}`, item);
@@ -139,7 +216,7 @@ function mergeJobs(left: NormalizedJob, right: NormalizedJob): NormalizedJob {
     description: chooseText(left.description, right.description),
     description_truncated: (right.description?.length ?? 0) > (left.description?.length ?? 0)
       ? right.description_truncated : left.description_truncated,
-    canonical_url: left.canonical_url ?? right.canonical_url,
+    canonical_url: canonicalUrl,
     date_posted: left.date_posted ?? right.date_posted,
     employment_type: left.employment_type ?? right.employment_type,
     remote: left.remote ?? right.remote,
