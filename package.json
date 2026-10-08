@@ -53,7 +53,9 @@
     "smoke:mcp": "npx -y @modelcontextprotocol/inspector@2.1.0 --cli node dist/src/stdio.js --method tools/list",
     "prepare": "npm run build",
     "check:boundary": "node scripts/check-boundary.mjs",
-    "check:plugin": "node scripts/check-plugin.mjs"
+    "check:plugin": "node scripts/check-plugin.mjs",
+    "deploy:check": "node deploy/scripts/check-endpoint.mjs",
+    "deploy:load": "node deploy/scripts/load-test.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.2.0",

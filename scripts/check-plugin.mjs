@@ -8,11 +8,16 @@
  * name and description frontmatter, and no bundled hooks (those make a plugin ineligible
  * for the public directory).
  *
- * Structural errors fail the run. Submission blockers (placeholder domains, missing
- * assets) are reported separately because they need a live domain or design work that
- * cannot be faked. Pass --submission to turn blockers into failures.
+ * It also checks the package against the hosting recipe in deploy/: every public URL must
+ * share one host, sit on the paths the proxy serves (/, /privacy, /terms, /mcp), and match
+ * the default site address in deploy/Caddyfile.
  *
- * Usage: node scripts/check-plugin.mjs [pluginDir] [--submission]
+ * Structural errors fail the run. Submission blockers (placeholder domains, missing
+ * assets, hosting not yet verified live) are reported separately because they need a live
+ * domain or design work that cannot be faked. Pass --submission to turn blockers into
+ * failures. Pass --live to fetch the public URLs; any live failure is an error.
+ *
+ * Usage: node scripts/check-plugin.mjs [pluginDir] [--submission] [--live]
  */
 
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -21,9 +26,22 @@ import { fileURLToPath } from "node:url";
 
 const args = process.argv.slice(2);
 const strict = args.includes("--submission");
+const live = args.includes("--live");
 const positional = args.filter((arg) => !arg.startsWith("--"));
 const defaultDir = fileURLToPath(new URL("../plugins/jobscout-discover", import.meta.url));
 const root = resolve(positional[0] ?? defaultDir);
+const caddyfilePath = fileURLToPath(new URL("../deploy/Caddyfile", import.meta.url));
+
+/** The paths the deploy recipe serves; the manifest must use exactly these. */
+const SERVED_PATHS = {
+  homepage: "/",
+  "interface.websiteURL": "/",
+  "interface.privacyPolicyURL": "/privacy",
+  "interface.termsOfServiceURL": "/terms",
+  mcp: "/mcp",
+};
+/** label -> URL, gathered while checking, for the host and path consistency checks. */
+const publicUrls = new Map();
 
 const errors = [];
 const blockers = [];
@@ -56,6 +74,7 @@ function checkPublicUrl(value, label) {
     return;
   }
   if (url.protocol !== "https:") errors.push(`${label}: public submission needs an https URL`);
+  publicUrls.set(label, url);
   if (/(^|\.)example\.(com|org|net)$/u.test(url.hostname) || /^replace/iu.test(url.hostname)) {
     blockers.push(`${label}: placeholder host ${url.hostname} must be replaced with a verified domain`);
   }
@@ -153,6 +172,53 @@ if (!existsSync(skillsDir)) {
 }
 
 if (existsSync(join(root, "hooks"))) errors.push("hooks/ directory present: ineligible for the public directory");
+
+// Consistency with the hosting recipe in deploy/.
+const hosts = new Set([...publicUrls.values()].map((url) => url.host));
+if (hosts.size > 1) errors.push(`public URLs use more than one host (${[...hosts].join(", ")}); the deploy recipe serves one`);
+for (const [label, url] of publicUrls) {
+  const expected = label.startsWith("mcp.json") ? SERVED_PATHS.mcp : SERVED_PATHS[label];
+  if (expected && url.pathname !== expected) errors.push(`${label}: path ${url.pathname} is not served by the deploy recipe (expected ${expected})`);
+}
+const [manifestHost] = hosts;
+if (manifestHost && existsSync(caddyfilePath)) {
+  const site = /\{\$JOBSCOUT_SITE_ADDRESS:([^}]+)\}/u.exec(readFileSync(caddyfilePath, "utf8"))?.[1];
+  if (!site) errors.push("deploy/Caddyfile: no default JOBSCOUT_SITE_ADDRESS found");
+  else if (site !== manifestHost) errors.push(`deploy/Caddyfile serves ${site} by default but the manifest points at ${manifestHost}`);
+}
+
+if (live && manifestHost) {
+  const origin = `https://${manifestHost}`;
+  const probes = [
+    { label: "health", url: `${origin}/health`, type: "application/json" },
+    ...[...publicUrls].filter(([label]) => !label.startsWith("mcp.json")).map(([label, url]) => ({ label, url: url.href, type: "text/html" })),
+  ];
+  for (const probe of probes) {
+    try {
+      const response = await fetch(probe.url, { signal: AbortSignal.timeout(15_000) });
+      const type = response.headers.get("content-type") ?? "";
+      if (response.status !== 200 || !type.includes(probe.type)) errors.push(`live ${probe.label}: ${probe.url} returned HTTP ${response.status} ${type}`);
+    } catch (error) {
+      errors.push(`live ${probe.label}: ${probe.url} unreachable (${error instanceof Error ? error.message : "unknown error"})`);
+    }
+  }
+  for (const [label, url] of publicUrls) {
+    if (!label.startsWith("mcp.json")) continue;
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "check-plugin", version: "1.0.0" } } }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (response.status !== 200) errors.push(`live ${label}: initialize returned HTTP ${response.status}`);
+    } catch (error) {
+      errors.push(`live ${label}: ${url.href} unreachable (${error instanceof Error ? error.message : "unknown error"})`);
+    }
+  }
+} else if (manifestHost) {
+  blockers.push(`hosting at ${manifestHost} not verified live: add the DNS record, deploy (docs/DEPLOYMENT.md), then run npm run check:plugin -- --live`);
+}
 
 for (const message of blockers) console.log(`${strict ? "FAIL" : "submission blocker"}: ${message}`);
 for (const message of errors) console.error(`FAIL: ${message}`);

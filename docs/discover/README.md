@@ -1,13 +1,14 @@
 # JobScout Discover: ChatGPT and Codex plugin
 
-JobScout Discover is the hosted, directory-ready packaging of JobScout MCP. The package lives in [`plugins/jobscout-discover`](../../plugins/jobscout-discover) and points at the Streamable HTTP server described in [deployment](../DEPLOYMENT.md).
+JobScout Discover is the hosted, directory-ready packaging of JobScout MCP. The package lives in [`plugins/jobscout-discover`](../../plugins/jobscout-discover) and points at the Streamable HTTP server at `https://jobscout.mcprack.dev/mcp`, hosted with the recipe in [deployment](../DEPLOYMENT.md). That host is a placeholder until its DNS record and deployment exist.
 
 ## Contents
 
 | Item | Where |
 |---|---|
 | Plugin manifest, MCP config, skills | `plugins/jobscout-discover/` |
-| Local validator | `npm run check:plugin` (add `-- --submission` for strict mode) |
+| Local validator | `npm run check:plugin` (add `-- --submission` for strict mode, `-- --live` to fetch the public URLs) |
+| Published pages | `/`, `/privacy` and `/terms`, served by the proxy in `deploy/`; the policy pages render `privacy.md` and `terms.md` from this folder |
 | Privacy policy draft | [privacy.md](privacy.md) |
 | Terms draft | [terms.md](terms.md) |
 | Demo account instructions | [demo-account.md](demo-account.md) |
@@ -25,13 +26,12 @@ The plugin searches, merges and shows provenance. It has no tool to apply, messa
 
 ## Remaining gaps (not faked)
 
-1. Public HTTPS domain, deployment and domain verification.
+1. DNS record for `jobscout.mcprack.dev`, a deployment of the `deploy/` recipe, and domain verification. The recipe and runbook exist; `npm run check:plugin -- --live` confirms the live URLs.
 2. OAuth client and authorisation server for existing-account sign-in.
 3. A real demo account, entered only in the portal's private field.
 4. `.app.json` with the `plugin_asdk_app_id` issued by the submission portal.
 5. Icon, logo and screenshots as PNG in `plugins/jobscout-discover/assets/`.
-6. Real privacy and terms pages published at the manifest URLs, with legal review.
-7. Replacing every `jobscout.example.com` placeholder in the manifest and `mcp.json`.
-8. Submitting through the portal, which only the operator can do.
-9. A Docker image build and a first deployment.
-10. Optional Claude Connectors Directory listing, which also needs the live domain.
+6. Final privacy and terms text with the operator's details and legal review. The proxy already serves these drafts at `/privacy` and `/terms`.
+7. Submitting through the portal, which only the operator can do.
+8. A Docker run of the compose stack and a first deployment.
+9. Optional Claude Connectors Directory listing, which also needs the live domain.

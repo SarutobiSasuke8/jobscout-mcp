@@ -1,0 +1,123 @@
+# JobScout Discover edge: TLS, per-IP rate limits, a request-size cap, health routes and the
+# public pages. Values in {$NAME:default} come from the environment (deploy/.env through
+# compose). Documented in docs/DEPLOYMENT.md; keep the numbers there in step with the defaults
+# here (test/deploy-config.test.ts checks this).
+#
+# Needs a Caddy build with github.com/mholt/caddy-ratelimit (deploy/caddy/Dockerfile).
+{
+	# Admin API on loopback inside the container only. Compose never publishes it.
+	admin localhost:2019
+
+	servers {
+		timeouts {
+			read_header 10s
+			read_body 30s
+			idle 2m
+		}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Proxy-only liveness for the container health check. Bound to loopback, not published by
+# compose, and independent of the app so a proxy fault and an app fault can be told apart.
+http://:{$JOBSCOUT_PROXY_HEALTH_PORT:2020} {
+	bind 127.0.0.1
+	respond /healthz "ok" 200
+	respond 404
+}
+
+# Public site. A bare host name (the default) gets automatic HTTPS from Let's Encrypt.
+# Local plain HTTP: JOBSCOUT_SITE_ADDRESS=:80. Local internal CA: JOBSCOUT_SITE_ADDRESS=localhost.
+{$JOBSCOUT_SITE_ADDRESS:jobscout.mcprack.dev} {
+	log {
+		output stdout
+		format json
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
+	# MCP over Streamable HTTP. The strict limits live here because every call can reach
+	# third-party job sources.
+	handle /mcp {
+		route {
+			rate_limit {
+				zone mcp_per_ip {
+					key {client_ip}
+					events {$JOBSCOUT_MCP_RATE_EVENTS:60}
+					window {$JOBSCOUT_MCP_RATE_WINDOW:1m}
+				}
+			}
+			request_body {
+				max_size {$JOBSCOUT_MCP_MAX_BODY:64KB}
+			}
+			reverse_proxy {$JOBSCOUT_UPSTREAM:jobscout:8080} {
+				health_uri /health
+				health_interval 30s
+				health_timeout 5s
+				transport http {
+					dial_timeout 5s
+					response_header_timeout 90s
+				}
+			}
+		}
+	}
+
+	# End-to-end health: answered by the app, through the proxy and its TLS.
+	handle /health {
+		route {
+			rate_limit {
+				zone health_per_ip {
+					key {client_ip}
+					events {$JOBSCOUT_SITE_RATE_EVENTS:120}
+					window {$JOBSCOUT_SITE_RATE_WINDOW:1m}
+				}
+			}
+			request_body {
+				max_size 1KB
+			}
+			reverse_proxy {$JOBSCOUT_UPSTREAM:jobscout:8080}
+		}
+	}
+
+	# Landing, privacy and terms pages. The policy text is rendered from docs/discover/*.md at
+	# request time, so the published pages cannot drift from the drafts in the repository.
+	@pages path / /privacy /terms
+	handle @pages {
+		route {
+			rate_limit {
+				zone pages_per_ip {
+					key {client_ip}
+					events {$JOBSCOUT_SITE_RATE_EVENTS:120}
+					window {$JOBSCOUT_SITE_RATE_WINDOW:1m}
+				}
+			}
+			request_body {
+				max_size 1KB
+			}
+			rewrite / /index.html
+			rewrite /privacy /privacy.html
+			rewrite /terms /terms.html
+			root * {$JOBSCOUT_SITE_ROOT:/srv/site}
+			header Cache-Control "public, max-age=300"
+			templates {
+				root {$JOBSCOUT_CONTENT_ROOT:/srv/content}
+			}
+			file_server
+		}
+	}
+
+	handle {
+		header Content-Type "application/json"
+		respond `{"error":"not_found"}` 404
+	}
+}

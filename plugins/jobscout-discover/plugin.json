@@ -7,7 +7,7 @@
     "name": "JobScout MCP maintainers",
     "url": "https://github.com/SarutobiSasuke8/jobscout-mcp"
   },
-  "homepage": "https://jobscout.example.com",
+  "homepage": "https://jobscout.mcprack.dev",
   "repository": "https://github.com/SarutobiSasuke8/jobscout-mcp",
   "license": "Apache-2.0",
   "keywords": ["jobs", "job-search", "remote-jobs", "mcp", "provenance"],
@@ -20,9 +20,9 @@
         "developerName": "JobScout MCP maintainers",
         "category": "Productivity",
         "capabilities": ["Read"],
-        "websiteURL": "https://jobscout.example.com",
-        "privacyPolicyURL": "https://jobscout.example.com/privacy",
-        "termsOfServiceURL": "https://jobscout.example.com/terms",
+        "websiteURL": "https://jobscout.mcprack.dev",
+        "privacyPolicyURL": "https://jobscout.mcprack.dev/privacy",
+        "termsOfServiceURL": "https://jobscout.mcprack.dev/terms",
         "defaultPrompt": [
           "Find remote product design roles posted in the last week.",
           "Search for AI engineer jobs and show where each listing came from.",

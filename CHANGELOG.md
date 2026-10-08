@@ -4,6 +4,10 @@
 
 ### Added
 
+- Single-VPS hosting recipe for JobScout Discover in `deploy/`: compose stack (existing `Dockerfile` behind Caddy with automatic HTTPS), per-IP rate limits and a request-size cap at the proxy, container, proxy and end-to-end health checks, and `/`, `/privacy` and `/terms` pages rendered from `docs/discover/`
+- `npm run deploy:check` (external operator check) and `npm run deploy:load` (rate-limit and size-cap load script)
+- Operator runbook in `docs/DEPLOYMENT.md`: DNS record, first boot, certificates, upgrade, rollback, logs
+
 - Streamable HTTP entrypoint (`jobscout-mcp-http`, `npm run start:http`) with a `/health` endpoint, stateless per-request serving, an optional shared bearer token and JobSpy forced off when hosted
 - `Dockerfile` for the hosted build (written, image build not yet run)
 - JobScout Discover plugin package in `plugins/jobscout-discover` (manifest, `mcp.json`, two skills) with a local structural validator, `npm run check:plugin`
@@ -33,6 +37,8 @@
 
 ### Changed
 
+- JobScout Discover manifest and `mcp.json` now point at `https://jobscout.mcprack.dev` (placeholder until DNS and deployment exist)
+- `npm run check:plugin` checks the manifest against the deploy recipe (one host, served paths, Caddyfile default host) and gains `--live`
 - the version string is defined once in `src/version.ts` and asserted against the package manifest by a test
 
 

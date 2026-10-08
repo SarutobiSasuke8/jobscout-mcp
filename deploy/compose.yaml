@@ -1,0 +1,82 @@
+# JobScout Discover: single-VPS stack. Run from this directory:
+#   cp .env.example .env    # then edit
+#   docker compose up -d --build
+# Local plain-HTTP trial: docker compose --env-file local.env up --build
+# See docs/DEPLOYMENT.md for the runbook.
+name: jobscout
+
+services:
+  jobscout:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: jobscout-mcp:${JOBSCOUT_IMAGE_TAG:-local}
+    restart: unless-stopped
+    # Not published on the host. Only the proxy reaches it, over the compose network.
+    expose:
+      - "8080"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      # Never set a bearer token here for the public anonymous service: ChatGPT users do not
+      # have one. Use mcp-host-gateway for token-gated access instead (docs/DEPLOYMENT.md).
+      JOBSCOUT_ENABLE_HIMALAYAS: ${JOBSCOUT_ENABLE_HIMALAYAS:-true}
+      JOBSCOUT_ENABLE_WEWORKREMOTELY: ${JOBSCOUT_ENABLE_WEWORKREMOTELY:-false}
+      JOBSCOUT_ENABLE_REMOTEOK: ${JOBSCOUT_ENABLE_REMOTEOK:-false}
+      JOBSCOUT_ENABLE_LENNYSJOBS: ${JOBSCOUT_ENABLE_LENNYSJOBS:-false}
+      JOBSCOUT_MAX_RESULTS: ${JOBSCOUT_MAX_RESULTS:-100}
+      JOBSCOUT_FEED_CACHE_TTL_MS: ${JOBSCOUT_FEED_CACHE_TTL_MS:-300000}
+    # The image's own HEALTHCHECK (Dockerfile) polls /health inside the container.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  caddy:
+    build:
+      context: ./caddy
+    image: jobscout-caddy:${JOBSCOUT_IMAGE_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      jobscout:
+        condition: service_healthy
+    ports:
+      - "${JOBSCOUT_HTTP_PORT:-80}:80"
+      - "${JOBSCOUT_HTTPS_PORT:-443}:443"
+      - "${JOBSCOUT_HTTPS_PORT:-443}:443/udp"
+    environment:
+      JOBSCOUT_SITE_ADDRESS: ${JOBSCOUT_SITE_ADDRESS:-jobscout.mcprack.dev}
+      JOBSCOUT_UPSTREAM: jobscout:8080
+      JOBSCOUT_MCP_RATE_EVENTS: ${JOBSCOUT_MCP_RATE_EVENTS:-60}
+      JOBSCOUT_MCP_RATE_WINDOW: ${JOBSCOUT_MCP_RATE_WINDOW:-1m}
+      JOBSCOUT_MCP_MAX_BODY: ${JOBSCOUT_MCP_MAX_BODY:-64KB}
+      JOBSCOUT_SITE_RATE_EVENTS: ${JOBSCOUT_SITE_RATE_EVENTS:-120}
+      JOBSCOUT_SITE_RATE_WINDOW: ${JOBSCOUT_SITE_RATE_WINDOW:-1m}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv/site:ro
+      - ../docs/discover:/srv/content:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2020/healthz"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging: *logging
+
+volumes:
+  # Certificates and ACME account. Back this up; losing it means re-issuing certificates.
+  caddy_data:
+  caddy_config:
