@@ -84,6 +84,7 @@ Providers are disabled by default and failures are isolated.
 | RemoteOK | Public JSON endpoint | None | Latest-listings feed filtered client-side; attribution requested by its API terms |
 | Lenny's Job Board | HTTP search API | None | Product, growth, design and engineering roles via TrueUp's undocumented endpoint; board links are discovery URLs |
 | JobSpy | Local Python subprocess | None | Optional `python-jobspy`; availability and site terms vary |
+| Greenhouse, Ashby, Lever | Official public job-board APIs | None | Opt-in per listed company board; the employer's ATS requisition URL is canonical |
 
 The provider contract supports future official ATS and specialist job-board adapters without coupling the core to any one vendor. See [provider documentation](docs/PROVIDERS.md).
 

@@ -37,6 +37,33 @@
           "default": "false"
         },
         {
+          "name": "JOBSCOUT_ENABLE_GREENHOUSE",
+          "description": "Enable the official Greenhouse public job-board adapter (needs GREENHOUSE_BOARDS).",
+          "default": "false"
+        },
+        {
+          "name": "GREENHOUSE_BOARDS",
+          "description": "Comma-separated Greenhouse board tokens, each token or token=Company Name."
+        },
+        {
+          "name": "JOBSCOUT_ENABLE_ASHBY",
+          "description": "Enable the official Ashby public job-board adapter (needs ASHBY_BOARDS).",
+          "default": "false"
+        },
+        {
+          "name": "ASHBY_BOARDS",
+          "description": "Comma-separated Ashby job-board names, each token or token=Company Name."
+        },
+        {
+          "name": "JOBSCOUT_ENABLE_LEVER",
+          "description": "Enable the official Lever public postings adapter (needs LEVER_SITES).",
+          "default": "false"
+        },
+        {
+          "name": "LEVER_SITES",
+          "description": "Comma-separated Lever site names, each token or token=Company Name."
+        },
+        {
           "name": "JOBSCOUT_ENABLE_JOBSPY",
           "description": "Enable the optional local python-jobspy bridge.",
           "default": "false"

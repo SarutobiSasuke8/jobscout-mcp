@@ -1,0 +1,161 @@
+{
+  "jobs": [
+    {
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8860302002",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 6547054002,
+      "location": {
+        "name": "Remote, France"
+      },
+      "metadata": [
+        {
+          "id": 4595831002,
+          "name": "Quota Coverage Type",
+          "value": "Account Executive",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8860302002,
+      "updated_at": "2026-10-02T11:31:50-04:00",
+      "requisition_id": "7109",
+      "title": "Account Executive - France",
+      "company_name": "GitLab",
+      "first_published": "2026-10-02T11:31:50-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;p&gt;GitLab is the intelligent orchestration platform for DevSecOps. GitLab enables organizations to increase developer productivity, improve operational efficiency, reduce security and compliance risk, and accelerate digital transformation. More than 50 million registered users and ...&lt;/p&gt;",
+      "departments": [
+        {
+          "id": 4096748002,
+          "name": "EMEA - Commercial",
+          "child_ids": [],
+          "parent_id": 4096735002
+        }
+      ],
+      "offices": [
+        {
+          "id": 4042500002,
+          "name": "France",
+          "location": "France",
+          "child_ids": [],
+          "parent_id": 4019553002
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": null
+    },
+    {
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8638232002",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 6449994002,
+      "location": {
+        "name": "Remote, United States"
+      },
+      "metadata": [
+        {
+          "id": 4595831002,
+          "name": "Quota Coverage Type",
+          "value": "n/a",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8638232002,
+      "updated_at": "2026-09-29T10:38:50-04:00",
+      "requisition_id": "6682",
+      "title": "AI Transformation Owner, CRO",
+      "company_name": "GitLab",
+      "first_published": "2026-07-22T13:38:40-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;p&gt;GitLab is the intelligent orchestration platform for DevSecOps. GitLab enables organizations to increase developer productivity, improve operational efficiency, reduce security and compliance risk, and accelerate digital transformation. More than 50 million registered users and ...&lt;/p&gt;",
+      "departments": [
+        {
+          "id": 4114891002,
+          "name": "Enablement",
+          "child_ids": [],
+          "parent_id": 4011049002
+        }
+      ],
+      "offices": [],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": null
+    },
+    {
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8626772002",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 6445355002,
+      "location": {
+        "name": "Bangalore, India"
+      },
+      "metadata": [
+        {
+          "id": 4595831002,
+          "name": "Quota Coverage Type",
+          "value": "n/a",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8626772002,
+      "updated_at": "2026-09-29T10:38:50-04:00",
+      "requisition_id": "6633",
+      "title": "Director, Engineering, Platform Operations & Productivity",
+      "company_name": "GitLab",
+      "first_published": "2026-07-13T12:57:20-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;p&gt;GitLab is the intelligent orchestration platform for DevSecOps. GitLab enables organizations to increase developer productivity, improve operational efficiency, reduce security and compliance risk, and accelerate digital transformation. More than 50 million registered users and ...&lt;/p&gt;",
+      "departments": [
+        {
+          "id": 4135580002,
+          "name": "Architecture Engineering",
+          "child_ids": [],
+          "parent_id": 4011044002
+        }
+      ],
+      "offices": [
+        {
+          "id": 4112140002,
+          "name": "India",
+          "location": null,
+          "child_ids": [],
+          "parent_id": 4019590002
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": null
+    }
+  ],
+  "meta": {
+    "total": 3
+  }
+}

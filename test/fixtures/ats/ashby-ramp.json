@@ -1,0 +1,358 @@
+{
+  "apiVersion": "1",
+  "jobs": [
+    {
+      "id": "34413f8d-26bf-4bbc-8ade-eb309a0e2245",
+      "title": " Security Engineer, Cloud",
+      "department": "Engineering",
+      "team": "Backend",
+      "employmentType": "FullTime",
+      "location": "New York, NY (HQ)",
+      "shouldDisplayCompensationOnJobPostings": true,
+      "secondaryLocations": [
+        {
+          "location": "Remote (Canada)",
+          "address": {
+            "postalAddress": {
+              "addressCountry": "Canada"
+            }
+          }
+        },
+        {
+          "location": "Remote (US)",
+          "address": {
+            "postalAddress": {
+              "addressCountry": "United States"
+            }
+          }
+        },
+        {
+          "location": "Miami, FL",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Florida",
+              "addressCountry": "USA",
+              "addressLocality": "Miami"
+            }
+          }
+        }
+      ],
+      "publishedAt": "2026-04-07T17:12:35.753+00:00",
+      "isListed": true,
+      "isRemote": true,
+      "workplaceType": "Hybrid",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "NY",
+          "addressCountry": "USA",
+          "addressLocality": "New York City"
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/ramp/34413f8d-26bf-4bbc-8ade-eb309a0e2245",
+      "applyUrl": "https://jobs.ashbyhq.com/ramp/34413f8d-26bf-4bbc-8ade-eb309a0e2245/application",
+      "descriptionHtml": "<h1><strong>About Ramp</strong></h1><p style=\"min-height:1.5em\">Ramp is building the smart infrastructure for finance teams, embedded in the transaction flow of every dollar a business spends. We automate how over $200B in annualized spend flows in and out of 70,000+ companies: authorizing payments, flagging risk, categorizing spend, and closing books.</p>",
+      "descriptionPlain": "ABOUT RAMP\n\nRamp is building the smart infrastructure for finance teams, embedded in the transaction flow of every dollar a business spends. We automate how over $200B in annualized spend flows in and out of 70,000+ companies: authorizing payments, flagging risk, categorizing ...",
+      "compensation": {
+        "compensationTierSummary": "$211.4K – $290.6K • Offers Equity",
+        "scrapeableCompensationSalarySummary": "$211.4K - $290.6K",
+        "compensationTiers": [
+          {
+            "id": "5f7a903e-36e4-492c-ac09-f2745d717daa",
+            "tierSummary": "$211.4K – $290.6K • Offers Equity",
+            "title": null,
+            "additionalInformation": null,
+            "components": [
+              {
+                "id": "feaef96f-559f-4df8-a38c-3eee072a8d74",
+                "summary": "Offers Equity",
+                "compensationType": "EquityPercentage",
+                "interval": "NONE",
+                "currencyCode": null,
+                "minValue": null,
+                "maxValue": null
+              },
+              {
+                "id": "3481c194-45fd-4b89-8592-e8f4d4b51f20",
+                "summary": "$211.4K – $290.6K",
+                "compensationType": "Salary",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": 211400,
+                "maxValue": 290600
+              }
+            ]
+          }
+        ],
+        "summaryComponents": [
+          {
+            "compensationType": "EquityPercentage",
+            "interval": "NONE",
+            "currencyCode": null,
+            "minValue": null,
+            "maxValue": null
+          },
+          {
+            "compensationType": "Salary",
+            "interval": "1 YEAR",
+            "currencyCode": "USD",
+            "minValue": 211400,
+            "maxValue": 290600
+          }
+        ]
+      }
+    },
+    {
+      "id": "d84bbf19-572a-499c-9c87-0c154ce85caf",
+      "title": "Account Manager | Mid-Market",
+      "department": "Sales",
+      "team": "Account Manager",
+      "employmentType": "FullTime",
+      "location": "New York, NY (HQ)",
+      "shouldDisplayCompensationOnJobPostings": true,
+      "secondaryLocations": [
+        {
+          "location": "San Francisco, CA",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "California ",
+              "addressCountry": "USA",
+              "addressLocality": "San Fransisco"
+            }
+          }
+        },
+        {
+          "location": "Remote (US)",
+          "address": {
+            "postalAddress": {
+              "addressCountry": "United States"
+            }
+          }
+        }
+      ],
+      "publishedAt": "2026-09-23T16:15:40.412+00:00",
+      "isListed": true,
+      "isRemote": true,
+      "workplaceType": "Remote",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "NY",
+          "addressCountry": "USA",
+          "addressLocality": "New York City"
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/ramp/d84bbf19-572a-499c-9c87-0c154ce85caf",
+      "applyUrl": "https://jobs.ashbyhq.com/ramp/d84bbf19-572a-499c-9c87-0c154ce85caf/application",
+      "descriptionHtml": "<h1><strong>About Ramp</strong></h1><p style=\"min-height:1.5em\">Ramp is building the smart infrastructure for finance teams, embedded in the transaction flow of every dollar a business spends. We automate how over $200B in annualized spend flows in and out of 70,000+ companies: authorizing payments, flagging risk, categorizing spend, and closing books.</p>",
+      "descriptionPlain": "ABOUT RAMP\n\nRamp is building the smart infrastructure for finance teams, embedded in the transaction flow of every dollar a business spends. We automate how over $200B in annualized spend flows in and out of 70,000+ companies: authorizing payments, flagging risk, categorizing ...",
+      "compensation": {
+        "compensationTierSummary": "$190K – $330K • Offers Equity • Multiple Ranges",
+        "scrapeableCompensationSalarySummary": "$190K - $330K",
+        "compensationTiers": [
+          {
+            "id": "20889b3a-dfec-454e-9928-12b5de126b87",
+            "tierSummary": "OTE $200K – $260K • Offers Equity • The OTE range above has a 60/40 split",
+            "title": "NYC / SF",
+            "additionalInformation": "The OTE range above has a 60/40 split",
+            "components": [
+              {
+                "id": "42ba253e-ef4d-4819-89f4-762edfeccb79",
+                "summary": "Offers Equity",
+                "compensationType": "EquityCashValue",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": null,
+                "maxValue": null
+              },
+              {
+                "id": "34639ea5-6015-4c6b-a438-7c7b49bc11a6",
+                "summary": "OTE $200K – $260K",
+                "compensationType": "Salary",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": 200000,
+                "maxValue": 260000
+              }
+            ]
+          },
+          {
+            "id": "67289cf1-ebc9-4685-91f1-ad0678b69d0c",
+            "tierSummary": "OTE $190K – $230K • Offers Equity • The OTE range above has a 60/40 split",
+            "title": "US Remote",
+            "additionalInformation": "The OTE range above has a 60/40 split",
+            "components": [
+              {
+                "id": "67889179-3aa3-44dc-8178-ee6054aac616",
+                "summary": "Offers Equity",
+                "compensationType": "EquityCashValue",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": null,
+                "maxValue": null
+              },
+              {
+                "id": "63118d18-3f25-4a90-a6c4-9b7352d9cd5c",
+                "summary": "OTE $190K – $230K",
+                "compensationType": "Salary",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": 190000,
+                "maxValue": 230000
+              }
+            ]
+          },
+          {
+            "id": "b051fef1-b814-4676-8768-e47ed3648aa8",
+            "tierSummary": "OTE $275K – $330K • Offers Equity • The OTE range above has a 60/40 split",
+            "title": "Sr. Account Manager (NYC / SF)",
+            "additionalInformation": "The OTE range above has a 60/40 split",
+            "components": [
+              {
+                "id": "f2170467-0de4-47ee-9761-449674583e89",
+                "summary": "Offers Equity",
+                "compensationType": "EquityCashValue",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": null,
+                "maxValue": null
+              },
+              {
+                "id": "69745264-aaf5-4945-882c-5c47b31de004",
+                "summary": "OTE $275K – $330K",
+                "compensationType": "Salary",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": 275000,
+                "maxValue": 330000
+              }
+            ]
+          },
+          {
+            "id": "d53fd644-590d-46dd-8bf6-0a569555cb38",
+            "tierSummary": "OTE $240K – $300K • Offers Equity • The OTE range above has a 60/40 split",
+            "title": "Sr. Account Manager (US Remote) ",
+            "additionalInformation": "The OTE range above has a 60/40 split",
+            "components": [
+              {
+                "id": "e23251cb-37cf-4f5b-bbec-41b2e06677b3",
+                "summary": "OTE $240K – $300K",
+                "compensationType": "Salary",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": 240000,
+                "maxValue": 300000
+              },
+              {
+                "id": "e522345a-7fd1-4853-8fbd-a9d82ee69a3c",
+                "summary": "Offers Equity",
+                "compensationType": "EquityCashValue",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": null,
+                "maxValue": null
+              }
+            ]
+          }
+        ],
+        "summaryComponents": [
+          {
+            "compensationType": "EquityCashValue",
+            "minValue": null,
+            "maxValue": null,
+            "interval": "1 YEAR"
+          },
+          {
+            "minValue": 190000,
+            "maxValue": 330000,
+            "currencyCode": "USD",
+            "interval": "1 YEAR",
+            "compensationType": "Salary"
+          }
+        ]
+      }
+    },
+    {
+      "id": "e0b64893-0459-4d84-ac4f-7b50966ef024",
+      "title": "Product Manager | Growth",
+      "department": "Product",
+      "team": "Product Management",
+      "employmentType": "FullTime",
+      "location": "New York, NY (HQ)",
+      "shouldDisplayCompensationOnJobPostings": true,
+      "secondaryLocations": [
+        {
+          "location": "San Francisco, CA",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "California ",
+              "addressCountry": "USA",
+              "addressLocality": "San Fransisco"
+            }
+          }
+        }
+      ],
+      "publishedAt": "2026-10-06T16:01:26.998+00:00",
+      "isListed": true,
+      "isRemote": false,
+      "workplaceType": "OnSite",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "NY",
+          "addressCountry": "USA",
+          "addressLocality": "New York City"
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/ramp/e0b64893-0459-4d84-ac4f-7b50966ef024",
+      "applyUrl": "https://jobs.ashbyhq.com/ramp/e0b64893-0459-4d84-ac4f-7b50966ef024/application",
+      "descriptionHtml": "<h1><strong>About Ramp</strong></h1><p style=\"min-height:1.5em\">Ramp is building the smart infrastructure for finance teams, embedded in the transaction flow of every dollar a business spends. We automate how over $200B in annualized spend flows in and out of 70,000+ companies: authorizing payments, flagging risk, categorizing spend, and closing books.</p>",
+      "descriptionPlain": "ABOUT RAMP\n\nRamp is building the smart infrastructure for finance teams, embedded in the transaction flow of every dollar a business spends. We automate how over $200B in annualized spend flows in and out of 70,000+ companies: authorizing payments, flagging risk, categorizing ...",
+      "compensation": {
+        "compensationTierSummary": "$230K – $325K • Offers Equity",
+        "scrapeableCompensationSalarySummary": "$230K - $325K",
+        "compensationTiers": [
+          {
+            "id": "43cb19b3-fc10-4181-9a48-83cbedcc3290",
+            "tierSummary": "$230K – $325K • Offers Equity",
+            "title": "Target Base Salary",
+            "additionalInformation": null,
+            "components": [
+              {
+                "id": "1e57aa77-f72e-4895-bd34-485472996148",
+                "summary": "Offers Equity",
+                "compensationType": "EquityPercentage",
+                "interval": "NONE",
+                "currencyCode": null,
+                "minValue": null,
+                "maxValue": null
+              },
+              {
+                "id": "ee05a221-a40a-45ba-a364-64049643c4e3",
+                "summary": "$230K – $325K",
+                "compensationType": "Salary",
+                "interval": "1 YEAR",
+                "currencyCode": "USD",
+                "minValue": 230000,
+                "maxValue": 325000
+              }
+            ]
+          }
+        ],
+        "summaryComponents": [
+          {
+            "compensationType": "EquityPercentage",
+            "interval": "NONE",
+            "currencyCode": null,
+            "minValue": null,
+            "maxValue": null
+          },
+          {
+            "compensationType": "Salary",
+            "interval": "1 YEAR",
+            "currencyCode": "USD",
+            "minValue": 230000,
+            "maxValue": 325000
+          }
+        ]
+      }
+    }
+  ]
+}
