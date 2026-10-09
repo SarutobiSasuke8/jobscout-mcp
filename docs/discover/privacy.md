@@ -1,7 +1,5 @@
 # Privacy policy (draft for JobScout Discover)
 
-Status: draft text for publication on the operator's own domain at `/privacy`. Replace every `[PLACEHOLDER]` and have it reviewed before submission. It describes how the software in this repository behaves, so it must be re-checked whenever the software changes.
-
 Effective date: [PLACEHOLDER]
 Operator: [PLACEHOLDER legal name and contact address]
 Contact for privacy questions: [PLACEHOLDER email]
