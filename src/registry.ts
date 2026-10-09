@@ -11,7 +11,7 @@ import { RemoteOkProvider } from "./providers/remoteok.js";
 import { WeWorkRemotelyProvider } from "./providers/weworkremotely.js";
 
 import type { AtsVendor } from "./providers/ats.js";
-import type { JobProvider, ProviderFailure, ProviderStatus, SearchQuery, SearchResult } from "./types.js";
+import type { JobProvider, ProviderFailure, ProviderStatus, SearchQuery, SearchResult, SearchToolName } from "./types.js";
 
 function enabled(value: string | undefined): boolean {
   return value?.toLocaleLowerCase("en") === "true";
@@ -45,19 +45,43 @@ function isFreshEnough(datePosted: string | undefined, hoursOld: number | undefi
   return now - Date.parse(`${datePosted}T23:59:59.999Z`) <= hoursOld * 60 * 60 * 1_000;
 }
 
+/** The tool that searches a provider. Unset means an open source on the free search. */
+function searchToolOf(status: ProviderStatus): SearchToolName {
+  return status.search_tool ?? "jobscout_search_jobs";
+}
+
+function withSearchTool(status: ProviderStatus): ProviderStatus {
+  return { ...status, search_tool: searchToolOf(status) };
+}
+
 export class ProviderRegistry {
   constructor(private readonly providers: JobProvider[]) {}
 
   statuses(): ProviderStatus[] {
-    return this.providers.map((provider) => provider.status());
+    return this.providers.map((provider) => withSearchTool(provider.status()));
   }
 
-  async search(query: SearchQuery): Promise<SearchResult> {
-    const statuses = this.providers.map((provider) => provider.status());
+  /**
+   * Search the providers that belong to one search tool. Providers belonging to the other tool
+   * are invisible to this search: never contacted, never counted as disabled (enabling them
+   * would not change this tool's results), and reported in `sources_elsewhere` when asked for by
+   * id. The default is the free search, so a caller that names no tool can never reach an
+   * employer source by accident.
+   */
+  async search(query: SearchQuery, tool: SearchToolName = "jobscout_search_jobs"): Promise<SearchResult> {
+    const inScope = this.providers.filter((provider) => searchToolOf(provider.status()) === tool);
+    const statuses = inScope.map((provider) => provider.status());
     const knownSources = new Set(statuses.map((status) => status.id));
-    const unknownSources = (query.sources ?? []).filter((source) => !knownSources.has(source));
+    const elsewhere = new Map(this.providers
+      .map((provider) => provider.status())
+      .filter((status) => searchToolOf(status) !== tool)
+      .map((status) => [status.id, searchToolOf(status)] as const));
+    const sourcesElsewhere = [...new Set(query.sources ?? [])]
+      .filter((source) => !knownSources.has(source) && elsewhere.has(source))
+      .map((source) => ({ source, tool: elsewhere.get(source) as SearchToolName }));
+    const unknownSources = (query.sources ?? []).filter((source) => !knownSources.has(source) && !elsewhere.has(source));
     const providersDisabled = statuses.filter((status) => !status.enabled).map((status) => status.id);
-    const selected = this.providers.filter((provider) => {
+    const selected = inScope.filter((provider) => {
       const status = provider.status();
       return status.enabled && (!query.sources || query.sources.includes(status.id));
     });
@@ -107,6 +131,12 @@ export class ProviderRegistry {
     // returns an empty success and the calling agent tells its user "no jobs matched" — false,
     // because nothing was searched. This was the first thing a first-run test tripped over.
     const setupRequired = selected.length === 0;
+    const elsewhereNote = sourcesElsewhere.length
+      ? `Requested sources searched by another tool, not by ${tool}: ${sourcesElsewhere.map((entry) => `${entry.source} (${entry.tool})`).join(", ")}. `
+      : "";
+    const enableExample = tool === "jobscout_search_employers"
+      ? "JOBSCOUT_ENABLE_GREENHOUSE=true with GREENHOUSE_BOARDS set to the employer board tokens"
+      : "JOBSCOUT_ENABLE_HIMALAYAS=true";
     return {
       jobs: finalJobs,
       failures,
@@ -118,11 +148,12 @@ export class ProviderRegistry {
       undated_records: finalJobs.filter((job) => !job.date_posted).length,
       location_unfiltered: locationUnfiltered,
       warnings,
+      ...(sourcesElsewhere.length ? { sources_elsewhere: sourcesElsewhere } : {}),
       ...(setupRequired ? {
         setup_required: true,
-        message: providersDisabled.length
-          ? `No providers are enabled, so nothing was searched. Available providers: ${providersDisabled.join(", ")}. Enable at least one (for example JOBSCOUT_ENABLE_HIMALAYAS=true) and retry; jobscout_list_sources explains what each provider contacts.`
-          : "No providers matched this request, so nothing was searched. Call jobscout_list_sources to see what is configured.",
+        message: elsewhereNote + (providersDisabled.length
+          ? `No providers are enabled, so nothing was searched. Available providers: ${providersDisabled.join(", ")}. Enable at least one (for example ${enableExample}) and retry; jobscout_list_sources explains what each provider contacts.`
+          : "No providers matched this request, so nothing was searched. Call jobscout_list_sources to see what is configured."),
       } : {}),
     };
   }

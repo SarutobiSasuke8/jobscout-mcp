@@ -2,5 +2,5 @@ export { canonicalizeUrl, deduplicateJobs, fingerprint, normalizeJob } from "./c
 export { classifyJob } from "./taxonomy.js";
 export { createProviderRegistry, ProviderRegistry } from "./registry.js";
 export { createJobScoutServer } from "./server.js";
-export { jobSignalsSchema, normalizedJobSchema, searchQuerySchema } from "./types.js";
-export type { JobProvider, JobSignals, NormalizedJob, ProviderStatus, SearchQuery, SearchResult } from "./types.js";
+export { employerSearchQuerySchema, employerSourceIds, jobSignalsSchema, normalizedJobSchema, searchQuerySchema, searchResultSchema, searchToolNames } from "./types.js";
+export type { EmployerSourceId, JobProvider, JobSignals, NormalizedJob, ProviderStatus, SearchQuery, SearchResult, SearchToolName } from "./types.js";

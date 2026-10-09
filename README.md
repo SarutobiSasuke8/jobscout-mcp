@@ -25,11 +25,14 @@ JobScout deliberately stops at trustworthy discovery. It does not store CVs, ran
 | Tool | Purpose | Network |
 |---|---|---|
 | `jobscout_list_sources` | Show configured providers, transports and coverage | No |
-| `jobscout_search_jobs` | Search, normalize, filter and deduplicate enabled sources | Provider-dependent |
+| `jobscout_search_jobs` | Search, normalize, filter and deduplicate enabled job boards and aggregators | Provider-dependent |
+| `jobscout_search_employers` | Search only the official employer ATS boards you configure (Greenhouse, Ashby, Lever), with the same filters and disclosure fields plus a declared output schema | Listed boards only |
 | `jobscout_classify_jobs` | Detect AI, agentic and Web3 signals in supplied jobs | No |
 | `jobscout_deduplicate` | Normalize and merge supplied JobScout records | No |
 | `jobscout_briefing` | Project records into briefing-ready entries with a compact `one_line` and best link | No |
 | `jobscout_source_yield` | Report what each source contributed: unique finds, overlap, employer-route coverage, undated records, conflicts | No |
+
+Employer ATS sources have their own tool, so a deployment that allows or denies tools by name can offer them separately (for example as a Pro-only tool) without touching the free search. The free search does not return ATS-source results. `jobscout_list_sources` reports each source's `search_tool`, and a free search that names an employer source lists it in `sources_elsewhere` rather than searching it. To combine both pools, pass them to `jobscout_deduplicate`.
 
 Two MCP prompts guide first-run use without the server storing anything: `jobscout_setup` walks through enabling providers and what each one contacts; `jobscout_find_jobs` gathers role, location and remote preference per search. A search run with zero enabled providers returns `setup_required: true` with guidance instead of a misleading empty result, and results report `providers_disabled`, `records_rejected` (with a `records_rejected_by_provider` breakdown), `undated_records`, `location_unfiltered` and `warnings` so thin results are always explained. `require_dated` and `include_descriptions` let a caller trade recall for certainty, or drop the untrusted description text it does not need.
 
@@ -84,7 +87,7 @@ Providers are disabled by default and failures are isolated.
 | RemoteOK | Public JSON endpoint | None | Latest-listings feed filtered client-side; attribution requested by its API terms |
 | Lenny's Job Board | HTTP search API | None | Product, growth, design and engineering roles via TrueUp's undocumented endpoint; board links are discovery URLs |
 | JobSpy | Local Python subprocess | None | Optional `python-jobspy`; availability and site terms vary |
-| Greenhouse, Ashby, Lever | Official public job-board APIs | None | Opt-in per listed company board; the employer's ATS requisition URL is canonical |
+| Greenhouse, Ashby, Lever | Official public job-board APIs | None | Opt-in per listed company board; the employer's ATS requisition URL is canonical. Searched only by `jobscout_search_employers`, never by `jobscout_search_jobs` |
 
 The provider contract supports future official ATS and specialist job-board adapters without coupling the core to any one vendor. See [provider documentation](docs/PROVIDERS.md).
 

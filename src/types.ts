@@ -54,6 +54,30 @@ export const searchQuerySchema = z.object({
     .describe("Return full job descriptions. Set false when only titles, companies and links are needed (for example when formatting with jobscout_briefing): descriptions are the bulk of the response size and are untrusted third-party prose."),
 });
 
+/**
+ * Each source is reached through exactly one search tool. The open boards and aggregators are
+ * searched by `jobscout_search_jobs`; the official employer ATS sources are searched only by
+ * `jobscout_search_employers`. Keeping them on separate tools means a gateway that allows or
+ * denies whole tools by name can offer the employer sources on their own (for example as a
+ * Pro-only tool) without any change to the gateway or to the free search.
+ */
+export const searchToolNames = ["jobscout_search_jobs", "jobscout_search_employers"] as const;
+export type SearchToolName = (typeof searchToolNames)[number];
+
+/** Source ids searched by `jobscout_search_employers`: the official ATS job-board adapters. */
+export const employerSourceIds = ["greenhouse", "ashby", "lever"] as const;
+export type EmployerSourceId = (typeof employerSourceIds)[number];
+
+/**
+ * Input for `jobscout_search_employers`. Identical to the free search except that `sources`
+ * may only name employer sources, so a request for an open board fails validation instead of
+ * silently searching nothing.
+ */
+export const employerSearchQuerySchema = searchQuerySchema.extend({
+  sources: z.array(z.enum(employerSourceIds)).max(employerSourceIds.length).optional()
+    .describe("Restrict the search to these employer sources. Omit to search every enabled one."),
+});
+
 export const provenanceSchema = z.object({
   provider: z.string().trim().min(1).max(60),
   discovery_url: httpUrlSchema.optional(),
@@ -91,6 +115,28 @@ export const normalizedJobSchema = z.object({
   provenance: z.array(provenanceSchema).min(1).max(50),
 });
 
+const disclosureListSchema = z.array(z.string().max(60)).max(50);
+
+/**
+ * The structured result of a search tool, as a schema. `jobscout_search_employers` advertises
+ * it as its output schema, so a client can rely on every disclosure field being present.
+ */
+export const searchResultSchema = z.object({
+  jobs: z.array(normalizedJobSchema).max(100),
+  failures: z.array(z.object({ provider: z.string().max(60), error: z.string().max(500) })).max(50),
+  providers_queried: disclosureListSchema,
+  unknown_sources: disclosureListSchema,
+  providers_disabled: disclosureListSchema,
+  records_rejected: z.number().int().nonnegative(),
+  records_rejected_by_provider: z.record(z.string(), z.number().int().nonnegative()),
+  undated_records: z.number().int().nonnegative(),
+  location_unfiltered: disclosureListSchema,
+  warnings: z.array(z.object({ provider: z.string().max(60), warning: z.string() })),
+  sources_elsewhere: z.array(z.object({ source: z.string().max(60), tool: z.enum(searchToolNames) })).max(50).optional(),
+  setup_required: z.boolean().optional(),
+  message: z.string().optional(),
+});
+
 /**
  * Job descriptions are attacker-controlled text that ends up inside a tool-enabled model's
  * context. A 100,000 character description across a 100 result page is a third of a million
@@ -120,6 +166,12 @@ export interface ProviderStatus {
    * an answer to a narrower question than was actually asked.
    */
   location_filtering?: "provider" | "none";
+  /**
+   * The one tool that searches this source. Providers that leave it unset are open sources
+   * searched by `jobscout_search_jobs`; the registry fills the default so `jobscout_list_sources`
+   * always says which tool to call.
+   */
+  search_tool?: SearchToolName;
   notes: string;
 }
 
@@ -179,6 +231,12 @@ export interface SearchResult {
   location_unfiltered: string[];
   /** Non-fatal provider degradations. Coverage may be thinner than a healthy run. */
   warnings: Array<{ provider: string; warning: string }>;
+  /**
+   * Requested source ids that exist but are searched by a different tool, with that tool's name.
+   * Present only when non-empty. Without it, asking the free search for an employer source
+   * would read as an unknown source or an empty market.
+   */
+  sources_elsewhere?: Array<{ source: string; tool: SearchToolName }>;
   /**
    * True when the search ran against zero enabled providers. Without this flag a fresh
    * install returns an empty success and the calling agent tells its user "no jobs matched",

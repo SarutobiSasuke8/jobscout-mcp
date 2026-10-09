@@ -254,7 +254,7 @@ void test("one failing board is a warning, not a provider failure", async () => 
 void test("every board failing is reported as a provider failure through the registry", async () => {
   const fake = fakeFetch({});
   const registry = new ProviderRegistry([provider(leverVendor, defaultLeverApiBase, [{ token: "nobody" }], fake.fetcher)]);
-  const result = await registry.search(searchQuery());
+  const result = await registry.search(searchQuery(), "jobscout_search_employers");
   assert.equal(result.jobs.length, 0);
   assert.equal(result.failures[0]?.provider, "lever");
   assert.match(result.failures[0]?.error ?? "", /every configured board failed/u);
@@ -303,14 +303,14 @@ void test("list_sources reports an ATS provider enabled once flagged and given b
   assert.equal(statuses.find((entry) => entry.id === "greenhouse")?.enabled, false);
 });
 
-void test("the search_jobs sources filter accepts the ATS provider ids", async () => {
+void test("the search_employers sources filter accepts the ATS provider ids", async () => {
   const fake = fakeFetch({ [greenhouseUrl]: () => json(greenhouseBody), [leverUrl]: () => json(leverBody), [ashbyUrl]: () => json(ashbyBody) });
   const registry = new ProviderRegistry([
     provider(greenhouseVendor, defaultGreenhouseApiBase, [{ token: "gitlab" }], fake.fetcher),
     provider(ashbyVendor, defaultAshbyApiBase, [{ token: "ramp", company: "Ramp" }], fake.fetcher),
     provider(leverVendor, defaultLeverApiBase, [{ token: "spotify", company: "Spotify" }], fake.fetcher),
   ]);
-  const result = await registry.search(searchQuery({ query: "manager", sources: ["lever", "ashby"] }));
+  const result = await registry.search(searchQuery({ query: "manager", sources: ["lever", "ashby"] }), "jobscout_search_employers");
   assert.deepEqual(result.providers_queried, ["ashby", "lever"]);
   assert.deepEqual(result.unknown_sources, []);
   assert(!fake.urls.includes(greenhouseUrl), "an unselected provider is not contacted");

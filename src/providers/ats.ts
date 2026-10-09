@@ -1,5 +1,6 @@
 import { mapUnknownJob, queryTerms, relevanceScore } from "./helpers.js";
 import { fetchTextResource } from "./http.js";
+import { employerSourceIds } from "../types.js";
 
 import type { UnknownRecord } from "./helpers.js";
 import type { ResponseCache } from "./http.js";
@@ -29,7 +30,7 @@ export const maxBoardsPerProvider = 25;
 const boardConcurrency = 4;
 
 /** Provider ids whose canonical URLs are first-party requisition links. */
-export const atsProviderIds = ["greenhouse", "ashby", "lever"] as const;
+export const atsProviderIds = employerSourceIds;
 
 export interface AtsBoard {
   /** The vendor's board identifier, as it appears in the public board URL. */
@@ -197,6 +198,8 @@ export class AtsBoardProvider implements JobProvider {
       coverage: ["general", "ai", "web3"],
       // Each board is downloaded whole; the API has no location or keyword parameter.
       location_filtering: "none",
+      // Employer sources are kept off the free search so a gateway can gate them by tool name.
+      search_tool: "jobscout_search_employers",
       notes: `Official ${vendor.label} public job-board API (${new URL(this.apiBase).host}), read only for the company boards you list, never for anyone else's. Enable with ${vendor.enableVariable}=true. ${configured}${ignored} Each board is fetched whole and filtered client-side, not scoped by location. The requisition URL comes from the employer's own ATS and is recorded as the canonical employer link. Terms: ${vendor.termsUrl}`,
     };
   }
