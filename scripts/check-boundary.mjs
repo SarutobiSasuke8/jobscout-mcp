@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 // out to a directory containing a space silently resolves to nothing and the gate passes
 // without scanning a single file.
 const root = fileURLToPath(new URL("..", import.meta.url));
-const scanRoots = ["src", "python", "docs", "agents", "test", "scripts", "plugins"];
+const scanRoots = ["src", "python", "docs", "agents", "test", "scripts", "plugins", "deploy"];
 const scanFiles = ["README.md", "Dockerfile", "AGENTS.md", "SECURITY.md", "CONTRIBUTING.md", "ROADMAP.md", ".env.example", "server.json", "package.json"];
 const backslash = String.fromCharCode(92);
 

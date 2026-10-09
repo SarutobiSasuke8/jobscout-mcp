@@ -57,7 +57,7 @@ See [installation](docs/INSTALLATION.md) for Claude Desktop, Cursor, local devel
 
 ## Install in ChatGPT, Codex and Claude
 
-JobScout runs two ways: locally over stdio (works today), or as a hosted Streamable HTTP server (code and package ready, not yet deployed).
+JobScout runs two ways: locally over stdio (works today), or as a hosted Streamable HTTP server. The hosted service is planned for `https://jobscout.mcprack.dev` with a ready deploy recipe in [`deploy/`](deploy), but it is not deployed yet.
 
 ### Local, works today
 
@@ -67,9 +67,9 @@ JobScout runs two ways: locally over stdio (works today), or as a hosted Streama
 
 ### ChatGPT and Codex plugin (JobScout Discover)
 
-The directory package is in [`plugins/jobscout-discover`](plugins/jobscout-discover) and follows [OpenAI's plugin format](https://developers.openai.com/plugins/build/plugins). It is **not yet listed**: it needs a public HTTPS deployment, OAuth for existing-account sign-in, a demo account and a portal submission. Everything else is drafted. See [JobScout Discover](docs/discover/README.md) for the review materials and the full list of gaps, and [deployment](docs/DEPLOYMENT.md) for the hosted server.
+The directory package is in [`plugins/jobscout-discover`](plugins/jobscout-discover) and follows [OpenAI's plugin format](https://developers.openai.com/plugins/build/plugins). Its manifest and `mcp.json` point at `https://jobscout.mcprack.dev`. It is **not yet listed**: it needs that deployment to go live, OAuth for existing-account sign-in, a demo account and a portal submission. See [JobScout Discover](docs/discover/README.md) for the review materials and the full list of gaps, and [deployment](docs/DEPLOYMENT.md) for the hosting recipe and operator runbook.
 
-Once a deployment URL exists, a ChatGPT developer-mode connector or a Claude custom connector can point at its `/mcp` endpoint, and Claude Code can use `claude mcp add --transport http jobscout <url>`. Until then, use the local install above.
+Once the deployment is live, a ChatGPT developer-mode connector or a Claude custom connector can point at `https://jobscout.mcprack.dev/mcp`, and Claude Code can use `claude mcp add --transport http jobscout https://jobscout.mcprack.dev/mcp`. Until then, use the local install above.
 
 Plans are sold only on the operator's own site. There is no in-chat checkout. See [monetisation](docs/MONETISATION.md).
 

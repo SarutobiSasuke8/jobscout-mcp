@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JobScout Discover</title>
+<meta name="description" content="Multi-source job discovery for AI assistants, with deduplication and source provenance.">
+<style>
+  :root { color-scheme: light dark; --fg: #1d1d1f; --muted: #5f6368; --bg: #ffffff; --line: #d9dce1; --accent: #0b57d0; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e8eaed; --muted: #9aa0a6; --bg: #131416; --line: #3c4043; --accent: #8ab4f8; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 42rem; margin: 0 auto; padding: 3rem 1rem; }
+  h1 { font-size: 1.8rem; margin: 0 0 0.5rem; }
+  p.lede { color: var(--muted); margin-top: 0; }
+  code { background: color-mix(in srgb, var(--line) 40%, transparent); padding: 0.1rem 0.35rem; border-radius: 4px; word-break: break-all; }
+  a { color: var(--accent); }
+  ul { padding-left: 1.2rem; }
+  footer { border-top: 1px solid var(--line); margin-top: 2.5rem; padding-top: 1rem; color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>JobScout Discover</h1>
+  <p class="lede">Multi-source job discovery for AI assistants. Searches the job sources this service has enabled, merges duplicate listings and shows where each one was found.</p>
+
+  <h2>What it does not do</h2>
+  <ul>
+    <li>It does not rank jobs for you.</li>
+    <li>It does not store a CV, contact employers or apply on your behalf.</li>
+    <li>It keeps no profile or search history between requests.</li>
+  </ul>
+
+  <h2>Connect</h2>
+  <p>MCP endpoint (Streamable HTTP): <code>{{placeholder "http.request.scheme"}}://{{.Req.Host}}/mcp</code></p>
+  <p>Use it from ChatGPT or Codex through the JobScout Discover plugin, or add it as a custom connector in an MCP client. Install notes are in the <a href="https://github.com/SarutobiSasuke8/jobscout-mcp#readme">project README</a>.</p>
+
+  <footer>
+    <a href="/privacy">Privacy policy</a> &middot;
+    <a href="/terms">Terms of service</a> &middot;
+    <a href="/health">Service health</a> &middot;
+    <a href="https://github.com/SarutobiSasuke8/jobscout-mcp">Source (Apache-2.0)</a>
+  </footer>
+</main>
+</body>
+</html>

@@ -3,7 +3,7 @@
   "mcpServers": {
     "jobscout": {
       "type": "streamable-http",
-      "url": "https://jobscout.example.com/mcp"
+      "url": "https://jobscout.mcprack.dev/mcp"
     }
   }
 }

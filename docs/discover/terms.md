@@ -1,7 +1,5 @@
 # Terms of service (draft for JobScout Discover)
 
-Status: draft text for publication on the operator's own domain at `/terms`. Replace every `[PLACEHOLDER]` and obtain legal review before submission.
-
 Effective date: [PLACEHOLDER]
 Operator: [PLACEHOLDER legal name, registered address]
 Governing law and courts: [PLACEHOLDER]

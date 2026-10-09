@@ -26,10 +26,63 @@ void test("the shipped plugin package is structurally valid", () => {
   assert.equal(status, 0, output);
 });
 
-void test("submission mode fails while placeholder domains and assets remain", () => {
+void test("submission mode fails while hosting is unverified and assets remain", () => {
   const { status, output } = run(pluginDir, "--submission");
   assert.equal(status, 1);
-  assert.match(output, /placeholder host/u);
+  assert.match(output, /not verified live/u);
+  assert.match(output, /\.app\.json/u);
+});
+
+void test("the manifest points at the hosted domain the deploy recipe serves", () => {
+  const manifest = readFileSync(join(pluginDir, "plugin.json"), "utf8");
+  const mcp = JSON.parse(readFileSync(join(pluginDir, "mcp.json"), "utf8")) as { mcpServers: Record<string, { url: string }> };
+  assert.doesNotMatch(manifest, /example\.com/u);
+  assert.equal(mcp.mcpServers.jobscout?.url, "https://jobscout.mcprack.dev/mcp");
+  const caddyfile = readFileSync(join(repo, "deploy", "Caddyfile"), "utf8");
+  assert.match(caddyfile, /\{\$JOBSCOUT_SITE_ADDRESS:jobscout\.mcprack\.dev\}/u);
+});
+
+function rewriteUrls(dir: string, from: string, to: string, files = ["plugin.json", "mcp.json"]): void {
+  for (const file of files) {
+    const path = join(dir, file);
+    writeFileSync(path, readFileSync(path, "utf8").split(from).join(to));
+  }
+}
+
+void test("public URLs on more than one host are rejected", () => {
+  const dir = copyPlugin();
+  try {
+    rewriteUrls(dir, "https://jobscout.mcprack.dev/mcp", "https://other.mcprack.dev/mcp", ["mcp.json"]);
+    const { status, output } = run(dir);
+    assert.equal(status, 1);
+    assert.match(output, /more than one host/u);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+void test("a privacy URL the proxy does not serve is rejected", () => {
+  const dir = copyPlugin();
+  try {
+    rewriteUrls(dir, "https://jobscout.mcprack.dev/privacy", "https://jobscout.mcprack.dev/legal/privacy", ["plugin.json"]);
+    const { status, output } = run(dir);
+    assert.equal(status, 1);
+    assert.match(output, /not served by the deploy recipe/u);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+void test("a manifest host that differs from the Caddyfile default is rejected", () => {
+  const dir = copyPlugin();
+  try {
+    rewriteUrls(dir, "jobscout.mcprack.dev", "jobs.mcprack.dev");
+    const { status, output } = run(dir);
+    assert.equal(status, 1);
+    assert.match(output, /deploy\/Caddyfile serves jobscout\.mcprack\.dev/u);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 void test("a non-kebab-case name is rejected", () => {
@@ -51,7 +104,7 @@ void test("a credential-like field in mcp.json is rejected", () => {
   const dir = copyPlugin();
   try {
     writeFileSync(join(dir, "mcp.json"), JSON.stringify({
-      mcpServers: { jobscout: { type: "streamable-http", url: "https://jobscout.example.com/mcp", apiKey: "x" } },
+      mcpServers: { jobscout: { type: "streamable-http", url: "https://jobscout.mcprack.dev/mcp", apiKey: "x" } },
     }));
     const { status, output } = run(dir);
     assert.equal(status, 1);

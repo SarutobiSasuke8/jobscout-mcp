@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of service | JobScout Discover</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1d1d1f; --muted: #5f6368; --bg: #ffffff; --line: #d9dce1; --accent: #0b57d0; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e8eaed; --muted: #9aa0a6; --bg: #131416; --line: #3c4043; --accent: #8ab4f8; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 42rem; margin: 0 auto; padding: 3rem 1rem; }
+  a { color: var(--accent); }
+  code { word-break: break-all; }
+  nav, footer { color: var(--muted); font-size: 0.9rem; }
+  footer { border-top: 1px solid var(--line); margin-top: 2.5rem; padding-top: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <nav><a href="/">JobScout Discover</a></nav>
+  {{include "terms.md" | markdown}}
+  <footer><a href="/">Home</a> &middot; <a href="/privacy">Privacy policy</a></footer>
+</main>
+</body>
+</html>
