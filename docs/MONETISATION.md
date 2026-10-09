@@ -8,6 +8,7 @@ Own-site freemium.
 
 - **Free tier.** The core discovery tools work without an account: search, deduplicate, classify, brief and source yield. This is what the plugin ships and what reviewers test.
 - **Paid plans.** Sold only on the operator's own website, with the operator's own checkout. Candidate features are higher request limits and additional enabled sources. The plan list and prices are [PLACEHOLDER]; none are decided.
+- **Employer sources as a separate tool.** This part is in the code. The official employer ATS sources (Greenhouse, Ashby, Lever) are searched only by `jobscout_search_employers`, never by the free `jobscout_search_jobs`. A gateway that gates whole tools by name can therefore offer them as a Pro-only tool through its existing per-tool allow list, with no gateway change. The tool carries the same provenance, disclosure fields and untrusted-content notice as the free search. See [providers](PROVIDERS.md#search-tool-jobscout_search_employers).
 - **Plans page.** The plugin may link to an informational plans page on the operator's site. It is a plain link. It carries no checkout, no upsell prompt and no price inside the conversation.
 
 ## Rules the plugin follows

@@ -12,7 +12,7 @@ Each provider implements:
 
 Provider failures are returned alongside successful results. One provider outage must reduce coverage rather than fail the entire blended search.
 
-When callers explicitly request unknown provider identifiers, JobScout returns them under `unknown_sources`. Provider results are treated as untrusted: invalid jobs are rejected (and counted in `records_rejected`, never silently dropped), URLs must use HTTP(S), response sizes are bounded, and remote/freshness constraints are enforced again after retrieval. A search against zero enabled providers reports `setup_required: true` rather than posing as an empty market.
+Each provider belongs to exactly one search tool, reported as `search_tool` in `jobscout_list_sources`: open boards and aggregators to `jobscout_search_jobs`, the official employer ATS sources to `jobscout_search_employers` (see [below](#search-tool-jobscout_search_employers)). A search only contacts, counts and reports providers that belong to its own tool. When callers explicitly request unknown provider identifiers, JobScout returns them under `unknown_sources`; an identifier that belongs to the other search tool is returned under `sources_elsewhere` with that tool's name instead. Provider results are treated as untrusted: invalid jobs are rejected (and counted in `records_rejected`, never silently dropped), URLs must use HTTP(S), response sizes are bounded, and remote/freshness constraints are enforced again after retrieval. A search against zero enabled providers reports `setup_required: true` rather than posing as an empty market.
 
 ## Disclosure fields
 
@@ -134,6 +134,15 @@ None of these APIs searches across companies. Each answers for one employer's bo
 
 Only these public job-board endpoints are used. No careers page is scraped, no logged-in or harvest endpoint is called, and nothing is ever submitted to an employer.
 
+### Search tool: `jobscout_search_employers`
+
+These three sources are searched only by their own tool, `jobscout_search_employers`. The free `jobscout_search_jobs` never contacts them and never returns their results, even when they are enabled. The reason is access control, not quality: an MCP gateway allows or denies whole tools by name, so a filter inside the free search could not be offered separately. As a separate tool, a hosted deployment can gate the employer sources (for example as a Pro-only tool) through its existing per-tool allow list, with no gateway change. Self-hosted users who enable the providers get both tools.
+
+- **Input:** the same fields as `jobscout_search_jobs` (`query`, `location`, `remote_only`, `hours_old`, `limit`, `require_dated`, `include_descriptions`), except that `sources` accepts only `greenhouse`, `ashby` and `lever`. Any other id fails input validation rather than silently searching nothing.
+- **Output:** the same result object as the free search, declared as the tool's MCP output schema: `jobs`, `failures`, `providers_queried`, `unknown_sources`, `providers_disabled`, `records_rejected`, `records_rejected_by_provider`, `undated_records`, `location_unfiltered`, `warnings`, and `setup_required` with `message` when no employer source is enabled. `providers_disabled` lists only employer sources. The untrusted-content notice is the same.
+- **Free search side:** `providers_disabled` on `jobscout_search_jobs` no longer lists the ATS providers (enabling them does not change its results). A free search whose `sources` names `greenhouse`, `ashby` or `lever` returns that id in `sources_elsewhere` as `{ "source": "greenhouse", "tool": "jobscout_search_employers" }` and does not contact it.
+- **Combining:** to merge board copies with the employer's own requisitions, pass both tools' `jobs` to `jobscout_deduplicate`. The deduplication rule below applies there.
+
 ### Configuration
 
 | Variable | Default | Purpose |
@@ -190,6 +199,6 @@ One board failing (an unknown token answers 404) is reported in `warnings` and t
 
 The same requisition reaches JobScout in several forms: `boards.greenhouse.io/acme/jobs/1`, `job-boards.greenhouse.io/acme/jobs/1?gh_src=x`, an employer careers page carrying `?gh_jid=1`, a Lever posting with or without `/apply`, an Ashby posting with or without `/application` or as `?ashby_jid=`. Deduplication reduces every recognised form to the vendor's requisition id, so a board that links to the ATS merges with the ATS record instead of sitting beside it. Employer names must still agree: the same id under a different employer is flagged `duplicate_conflict` and kept apart.
 
-When a board copy and an ATS record merge, the ATS record is first-party. Its requisition URL becomes `canonical_url` and its fields take precedence, whichever result arrived first. The board's link stays in `provenance`. A text-only board copy (no link) merges into the ATS record under the existing unambiguous-match rule.
+When a board copy and an ATS record merge, the ATS record is first-party. Its requisition URL becomes `canonical_url` and its fields take precedence, whichever result arrived first. The board's link stays in `provenance`. A text-only board copy (no link) merges into the ATS record under the existing unambiguous-match rule. Because the two kinds of source sit on different search tools, this merge happens when a caller passes both pools to `jobscout_deduplicate`, or between ATS vendors inside `jobscout_search_employers`.
 
 Records whose identity is an ATS link get a different, still deterministic, `id` than before this change, because the id is now derived from the requisition rather than the raw URL.
