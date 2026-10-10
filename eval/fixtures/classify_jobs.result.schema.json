@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["jobs"],
+  "properties": {
+    "jobs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["index", "signals"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "signals": {
+            "type": "object",
+            "required": ["domains", "categories", "technologies", "matched_terms", "confidence"],
+            "properties": {
+              "domains": { "type": "array", "items": { "type": "string" }, "maxItems": 2 },
+              "categories": { "type": "array", "items": { "type": "string" } },
+              "technologies": { "type": "array", "items": { "type": "string" } },
+              "matched_terms": { "type": "array", "items": { "type": "string" } },
+              "confidence": { "type": "string", "enum": ["none", "low", "medium", "high"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

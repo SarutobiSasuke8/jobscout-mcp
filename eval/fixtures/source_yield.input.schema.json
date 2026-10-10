@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "jobs": {
+      "items": {
+        "properties": {
+          "canonical_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "company": {
+            "maxLength": 300,
+            "minLength": 1,
+            "type": "string"
+          },
+          "date_posted": {
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 100000,
+            "type": "string"
+          },
+          "description_truncated": {
+            "type": "boolean"
+          },
+          "duplicate_conflict": {
+            "type": "boolean"
+          },
+          "employment_type": {
+            "maxLength": 80,
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "location": {
+            "default": "Unknown",
+            "maxLength": 5000,
+            "type": "string"
+          },
+          "provenance": {
+            "items": {
+              "properties": {
+                "captured_at": {
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                  "type": "string"
+                },
+                "discovery_url": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "provider": {
+                  "maxLength": 60,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "source_job_id": {
+                  "maxLength": 240,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "provider",
+                "captured_at"
+              ],
+              "type": "object"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "type": "array"
+          },
+          "remote": {
+            "type": "boolean"
+          },
+          "salary": {
+            "properties": {
+              "currency": {
+                "maxLength": 8,
+                "minLength": 3,
+                "type": "string"
+              },
+              "interval": {
+                "enum": [
+                  "hour",
+                  "day",
+                  "week",
+                  "month",
+                  "year",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              "max": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "min": {
+                "minimum": 0,
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "signals": {
+            "properties": {
+              "categories": {
+                "items": {
+                  "enum": [
+                    "ai-agents",
+                    "ai-infrastructure",
+                    "ai-data-evals",
+                    "ai-safety-governance",
+                    "robotics",
+                    "web3-protocols",
+                    "defi",
+                    "depin",
+                    "wallets-custody",
+                    "exchanges-markets",
+                    "web3-developer-infrastructure",
+                    "gaming-metaverse",
+                    "agentic-commerce"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "type": "array"
+              },
+              "confidence": {
+                "enum": [
+                  "none",
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "type": "string"
+              },
+              "domains": {
+                "items": {
+                  "enum": [
+                    "ai",
+                    "web3"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 2,
+                "type": "array"
+              },
+              "matched_terms": {
+                "items": {
+                  "maxLength": 80,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              "technologies": {
+                "items": {
+                  "maxLength": 80,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              }
+            },
+            "required": [
+              "domains",
+              "categories",
+              "technologies",
+              "matched_terms",
+              "confidence"
+            ],
+            "type": "object"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "company",
+          "provenance"
+        ],
+        "type": "object"
+      },
+      "maxItems": 5000,
+      "type": "array"
+    }
+  },
+  "required": [
+    "jobs"
+  ],
+  "type": "object"
+}

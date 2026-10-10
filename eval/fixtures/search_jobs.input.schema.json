@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "hours_old": {
+      "maximum": 2160,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "include_descriptions": {
+      "default": true,
+      "description": "Return full job descriptions. Set false when only titles, companies and links are needed (for example when formatting with jobscout_briefing): descriptions are the bulk of the response size and are untrusted third-party prose.",
+      "type": "boolean"
+    },
+    "limit": {
+      "default": 25,
+      "maximum": 100,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "location": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "query": {
+      "maxLength": 240,
+      "minLength": 1,
+      "type": "string"
+    },
+    "remote_only": {
+      "default": false,
+      "type": "boolean"
+    },
+    "require_dated": {
+      "default": false,
+      "description": "Drop records with no posting date. Freshness filters cannot vouch for undated records, so by default they are kept and counted in undated_records. Set true when a stale result is worse than a thin one.",
+      "type": "boolean"
+    },
+    "sources": {
+      "items": {
+        "maxLength": 40,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "type": "array"
+    }
+  },
+  "required": [
+    "query"
+  ],
+  "type": "object"
+}

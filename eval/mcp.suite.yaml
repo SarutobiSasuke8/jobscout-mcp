@@ -1,0 +1,140 @@
+# JobScout MCP contract suite (mcp-eval harness v1).
+#
+# Run with `npm run eval:contract`. Offline by construction: target.env forces every provider
+# off and points every provider URL at a closed local port, so no tool call can reach a job
+# board even if a provider flag is set in the calling shell. JobSpy is off, so no Python
+# subprocess starts. No secrets: the env values below are synthetic.
+#
+# Golden updates are reviewed code changes: `npx mcp-eval eval/mcp.suite.yaml --update-goldens`
+# locally only, never in CI.
+version: 1
+name: jobscout-mcp
+timeout_ms: 30000
+target:
+  transport: stdio
+  command: ["node", "../dist/src/stdio.js"]
+  env:
+    JOBSCOUT_ENABLE_HIMALAYAS: "false"
+    JOBSCOUT_ENABLE_WEWORKREMOTELY: "false"
+    JOBSCOUT_ENABLE_REMOTEOK: "false"
+    JOBSCOUT_ENABLE_JOBSPY: "false"
+    JOBSCOUT_ENABLE_LENNYSJOBS: "false"
+    HIMALAYAS_MCP_URL: "http://127.0.0.1:9/mcp"
+    WWR_RSS_URL: "http://127.0.0.1:9/remote-jobs.rss"
+    REMOTEOK_API_URL: "http://127.0.0.1:9/api"
+    LENNYSJOBS_ENDPOINT: "http://127.0.0.1:9/jobs/search"
+    JOBSCOUT_FEED_CACHE_TTL_MS: "0"
+    JOBSPY_SITES: "indeed"
+    JOBSPY_COUNTRY: ""
+contracts:
+  # Six tools and two prompts. exact: true means a seventh tool, or a missing one, fails.
+  - name: tools_listed
+    expect_tools:
+      - jobscout_list_sources
+      - jobscout_search_jobs
+      - jobscout_classify_jobs
+      - jobscout_deduplicate
+      - jobscout_source_yield
+      - jobscout_briefing
+    exact: true
+
+  # jobscout_setup and jobscout_find_jobs are prompts (server.registerPrompt), not tools.
+  - name: prompts_listed
+    expect_prompts:
+      - jobscout_setup
+      - jobscout_find_jobs
+    exact: true
+
+  # The advertised input schema of every tool, so a silent schema change fails.
+  - name: input_schemas
+    input_schema:
+      jobscout_list_sources: fixtures/list_sources.input.schema.json
+      jobscout_search_jobs: fixtures/search_jobs.input.schema.json
+      jobscout_classify_jobs: fixtures/classify_jobs.input.schema.json
+      jobscout_deduplicate: fixtures/deduplicate.input.schema.json
+      jobscout_source_yield: fixtures/source_yield.input.schema.json
+      jobscout_briefing: fixtures/briefing.input.schema.json
+
+  # Happy path: deterministic keyword classification, no provider contacted.
+  - name: classify_jobs_golden
+    tool: jobscout_classify_jobs
+    input:
+      jobs:
+        - title: "Senior Solidity Engineer"
+          company: "Example Labs"
+          location: "Remote"
+          description: "Build smart contracts on EVM chains. Experience with LLM agents is a plus."
+          tags: ["web3", "ai"]
+        - title: "Staff Nurse"
+          company: "Example Hospital"
+          location: "Dublin"
+          description: "Ward-based nursing role."
+          tags: []
+    assert:
+      result_schema: fixtures/classify_jobs.result.schema.json
+      golden: fixtures/classify_jobs.golden.json
+
+  # Happy path: briefing projection of a synthetic record.
+  - name: briefing_golden
+    tool: jobscout_briefing
+    input:
+      jobs:
+        - id: "1111111111111111111111111111111111111111111111111111111111111111"
+          title: "Platform Engineer"
+          company: "Example Labs"
+          location: "Remote, EU"
+          remote: true
+          date_posted: "2026-10-01"
+          canonical_url: "https://example.com/jobs/platform-engineer"
+          tags: ["typescript"]
+          provenance:
+            - provider: "example"
+              discovery_url: "https://example.com/board/1"
+              captured_at: "2026-10-01T09:00:00Z"
+    assert:
+      golden: fixtures/briefing.golden.json
+
+  # Sources are reported, all disabled under the offline env above.
+  - name: list_sources_golden
+    tool: jobscout_list_sources
+    input: {}
+    assert:
+      golden: fixtures/list_sources.golden.json
+
+  # Fail closed: with no provider enabled, a search searches nothing and says so with
+  # setup_required instead of returning an empty success that reads as "no jobs matched".
+  - name: search_without_providers_fails_closed
+    tool: jobscout_search_jobs
+    input: { query: "platform engineer", limit: 5 }
+    assert:
+      golden:
+        path: fixtures/search_no_providers.golden.json
+        only_paths: [jobs, providers_queried, setup_required, failures]
+
+  # Deny: over-limit requests are rejected by the input schema and surface as isError: true.
+  - name: deny_over_limit
+    tool: jobscout_search_jobs
+    input: { query: "nurse dublin", limit: 9999 }
+    assert:
+      is_error: true
+      error_message: "limit"
+
+  # Deny: a job record without provenance is rejected, never silently accepted.
+  - name: deny_record_without_provenance
+    tool: jobscout_deduplicate
+    input:
+      jobs:
+        - id: "2222222222222222222222222222222222222222222222222222222222222222"
+          title: "Data Analyst"
+          company: "Example Co"
+          provenance: []
+    assert:
+      is_error: true
+      error_message: "provenance"
+
+  # Protocol level: an unregistered tool is a JSON-RPC error, not a result.
+  - name: unknown_tool_is_invalid_params
+    tool: jobscout_not_a_tool
+    input: {}
+    assert:
+      error_code: INVALID_PARAMS
