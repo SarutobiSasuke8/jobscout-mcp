@@ -19,6 +19,9 @@ target:
     JOBSCOUT_ENABLE_REMOTEOK: "false"
     JOBSCOUT_ENABLE_JOBSPY: "false"
     JOBSCOUT_ENABLE_LENNYSJOBS: "false"
+    JOBSCOUT_ENABLE_GREENHOUSE: "false"
+    JOBSCOUT_ENABLE_ASHBY: "false"
+    JOBSCOUT_ENABLE_LEVER: "false"
     HIMALAYAS_MCP_URL: "http://127.0.0.1:9/mcp"
     WWR_RSS_URL: "http://127.0.0.1:9/remote-jobs.rss"
     REMOTEOK_API_URL: "http://127.0.0.1:9/api"
@@ -27,11 +30,12 @@ target:
     JOBSPY_SITES: "indeed"
     JOBSPY_COUNTRY: ""
 contracts:
-  # Six tools and two prompts. exact: true means a seventh tool, or a missing one, fails.
+  # Seven tools and two prompts. exact: true means an extra or missing tool fails.
   - name: tools_listed
     expect_tools:
       - jobscout_list_sources
       - jobscout_search_jobs
+      - jobscout_search_employers
       - jobscout_classify_jobs
       - jobscout_deduplicate
       - jobscout_source_yield
