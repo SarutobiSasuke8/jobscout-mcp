@@ -1,0 +1,21 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "content": [{ "type": "text", "text": "Found 1 job" }],
+    "structuredContent": {
+      "jobs": [
+        {
+          "title": "Developer Advocate",
+          "company_name": "Bluefen Labs",
+          "location": "Remote, EU",
+          "is_remote": true,
+          "job_url": "https://himalayas.app/companies/bluefen-labs/jobs/developer-advocate",
+          "apply_url": "https://careers.bluefen.example/roles/developer-advocate",
+          "date_posted": "2026-09-29T07:45:00Z",
+          "tags": ["DevRel", "Machine Learning"]
+        }
+      ]
+    }
+  }
+}

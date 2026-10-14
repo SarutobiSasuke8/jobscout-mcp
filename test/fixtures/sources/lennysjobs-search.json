@@ -1,0 +1,41 @@
+{
+  "results": [
+    {
+      "hits": [
+        {
+          "objectID": "ln-5001",
+          "title": "Senior __ais-highlight__Product__/ais-highlight__ Manager, Growth",
+          "company": { "name": "Larkspur Robotics", "logo_url": "https://cdn.larkspur.example/logo.png" },
+          "job_locations_combined": ["San Francisco, California, USA", "Remote, US"],
+          "job_subcategories_all": ["Product Management"],
+          "themes": ["Robotics"],
+          "level": ["Senior"],
+          "company_stage": ["Series B"],
+          "description": "Own activation and retention for our warehouse robot fleet software.",
+          "date_posted": "2026-09-27T16:00:00Z",
+          "job_url_direct": "https://careers.larkspur.example/jobs/pm-growth?utm_source=lennysjobs&utm_medium=board",
+          "_highlightResult": { "title": { "value": "Senior __ais-highlight__Product__/ais-highlight__ Manager, Growth", "matchLevel": "partial" } }
+        },
+        {
+          "objectID": "ln-5002",
+          "title": "Design Lead",
+          "company": { "name": "Ostrava Studio" },
+          "job_locations_combined": ["Prague, Czechia"],
+          "job_subcategories_all": ["Design"],
+          "level": ["Lead"]
+        },
+        {
+          "objectID": "ln-5003",
+          "title": "Hit with no company"
+        }
+      ],
+      "nbHits": 3,
+      "page": 0,
+      "nbPages": 1,
+      "hitsPerPage": 25,
+      "processingTimeMS": 4,
+      "query": "product manager",
+      "params": "query=product%20manager&hitsPerPage=25"
+    }
+  ]
+}

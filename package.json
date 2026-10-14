@@ -47,7 +47,7 @@
     "dev:http": "node --env-file-if-exists=.env --import tsx src/http-server.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "npm run build && node --test \"dist/test/*.test.js\"",
+    "test": "npm run build && node --import ./dist/test/network-guard.js --test \"dist/test/*.test.js\"",
     "check": "npm run check:lockfile && npm run typecheck && npm run lint && npm run check:boundary && npm run check:plugin && npm test",
     "check:lockfile": "npm ci --dry-run --ignore-scripts",
     "pack:check": "npm pack --dry-run",

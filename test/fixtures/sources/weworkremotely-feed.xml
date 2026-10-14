@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+<title>We Work Remotely: Remote jobs in design, programming, marketing and more</title>
+<link>https://weworkremotely.com/</link>
+<description>Remote jobs</description>
+<language>en-US</language>
+<ttl>60</ttl>
+<item>
+<title>Kestrel Ledger: Smart Contract Auditor</title>
+<region>Anywhere in the World</region>
+<country></country>
+<state></state>
+<skills></skills>
+<category>Programming</category>
+<type>Full-Time</type>
+<description><![CDATA[<p><strong>Headquarters:</strong> Remote</p><p>Review smart contract code for our settlement protocol &amp; publish audit notes.</p>]]></description>
+<pubDate>Fri, 02 Oct 2026 14:05:11 +0000</pubDate>
+<expires_at>Sun, 01 Nov 2026 14:05:11 +0000</expires_at>
+<guid>https://weworkremotely.com/remote-jobs/kestrel-ledger-smart-contract-auditor</guid>
+<link>https://weworkremotely.com/remote-jobs/kestrel-ledger-smart-contract-auditor</link>
+</item>
+<item>
+<title>Quillon Health: Product Designer</title>
+<region>Europe Only</region>
+<category>Design</category>
+<type>Contract</type>
+<description><![CDATA[<p>Design the clinician-facing <em>scheduling</em> tools.</p>]]></description>
+<pubDate>Wed, 30 Sep 2026 23:59:00 -0200</pubDate>
+<guid>https://weworkremotely.com/remote-jobs/quillon-health-product-designer</guid>
+<link>https://weworkremotely.com/remote-jobs/quillon-health-product-designer</link>
+</item>
+<item>
+<title>Item with no link</title>
+<region>Anywhere in the World</region>
+<description><![CDATA[<p>Broken item.</p>]]></description>
+<pubDate>Wed, 30 Sep 2026 10:00:00 +0000</pubDate>
+</item>
+</channel>
+</rss>

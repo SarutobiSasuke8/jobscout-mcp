@@ -124,6 +124,16 @@ npm run check:plugin
 
 The protocol smoke test uses the official MCP Inspector. Provider contributions must include fixtures, failure behavior, provenance handling, and tests; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Verify
+
+```bash
+npm ci
+npm test          # build, then every test under test/, offline
+npm run check     # the full gate CI runs: lockfile, typecheck, lint, boundary, plugin, tests
+```
+
+The tests never touch the network. Each source adapter (Greenhouse, Ashby, Lever, RemoteOK, We Work Remotely, Lenny's Job Board, Himalayas, and the JobSpy bridge output) is exercised against a recorded-shape fixture in `test/fixtures/sources/`, made of invented companies and jobs, and every normalised field is checked, including provenance: source, discovery URL, source job id and `captured_at`. `test/dedupe-edge-cases.test.ts` covers the same job arriving from several sources, spelling and URL variations, re-posts and how provenance merges. `npm test` preloads `test/network-guard.ts`, which fails any test that tries a real network call; only loopback is allowed. CI runs `npm run check` on Ubuntu and Windows for every pull request.
+
 ## Release status
 
 The next release includes more conservative duplicate handling and streaming feed-size limits. See [reliability evidence and remaining gates](docs/RELIABILITY.md). These changes are unreleased until a new version is tagged and published.
