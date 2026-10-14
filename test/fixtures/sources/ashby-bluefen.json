@@ -1,0 +1,69 @@
+{
+  "apiVersion": "1",
+  "jobs": [
+    {
+      "id": "6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b",
+      "title": "  ML Platform Engineer ",
+      "department": "Engineering",
+      "team": "Machine Learning",
+      "employmentType": "FullTime",
+      "location": "Berlin",
+      "shouldDisplayCompensationOnJobPostings": true,
+      "secondaryLocations": [
+        { "location": "Remote (EU)", "address": { "postalAddress": { "addressCountry": "Germany" } } },
+        { "location": "Berlin", "address": { "postalAddress": { "addressCountry": "Germany" } } }
+      ],
+      "publishedAt": "2026-09-30T08:00:00.000+00:00",
+      "isListed": true,
+      "isRemote": true,
+      "workplaceType": "Hybrid",
+      "address": { "postalAddress": { "addressRegion": "Berlin", "addressCountry": "Germany", "addressLocality": "Berlin" } },
+      "jobUrl": "https://jobs.ashbyhq.com/bluefen/6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b",
+      "applyUrl": "https://jobs.ashbyhq.com/bluefen/6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b/application",
+      "descriptionHtml": "<p>Run the training and inference platform for our machine learning teams.</p>",
+      "descriptionPlain": "Run the training and inference platform for our machine learning teams.",
+      "compensation": {
+        "compensationTierSummary": "EUR 90K - EUR 120K, offers equity",
+        "scrapeableCompensationSalarySummary": "EUR 90K - EUR 120K",
+        "compensationTiers": [],
+        "summaryComponents": [
+          { "compensationType": "EquityPercentage", "interval": "NONE", "currencyCode": null, "minValue": 0.05, "maxValue": 0.1 },
+          { "compensationType": "Salary", "interval": "1 YEAR", "currencyCode": "EUR", "minValue": 90000, "maxValue": 120000 }
+        ]
+      }
+    },
+    {
+      "id": "7a2e3d4c-5b6f-4071-8b8c-9daeb0f1c2d3",
+      "title": "Office Manager",
+      "department": "Operations",
+      "team": "Workplace",
+      "employmentType": "PartTime",
+      "location": "Berlin",
+      "secondaryLocations": [],
+      "publishedAt": "2026-09-15T12:30:00.000+00:00",
+      "isListed": true,
+      "isRemote": false,
+      "workplaceType": "OnSite",
+      "jobUrl": "https://jobs.ashbyhq.com/bluefen/7a2e3d4c-5b6f-4071-8b8c-9daeb0f1c2d3",
+      "applyUrl": "https://jobs.ashbyhq.com/bluefen/7a2e3d4c-5b6f-4071-8b8c-9daeb0f1c2d3/application",
+      "descriptionHtml": "<p>Keep our <strong>Berlin</strong> office running &amp; welcoming.</p>"
+    },
+    {
+      "id": "8b3f4e5d-6c70-4182-9c9d-aebfc1020304",
+      "title": "Confidential Search",
+      "department": "Engineering",
+      "employmentType": "FullTime",
+      "location": "Berlin",
+      "isListed": false,
+      "jobUrl": "https://jobs.ashbyhq.com/bluefen/8b3f4e5d-6c70-4182-9c9d-aebfc1020304"
+    },
+    {
+      "id": "9c405f6e-7d81-4293-8dae-bfc0d2131415",
+      "title": "Posting missing its URL",
+      "department": "Engineering",
+      "employmentType": "FullTime",
+      "location": "Berlin",
+      "isListed": true
+    }
+  ]
+}

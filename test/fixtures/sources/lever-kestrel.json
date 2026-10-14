@@ -1,0 +1,58 @@
+[
+  {
+    "additionalPlain": "Kestrel Ledger is an equal opportunity employer.",
+    "additional": "<p>Kestrel Ledger is an equal opportunity employer.</p>",
+    "categories": {
+      "commitment": "Full-time",
+      "department": "Security",
+      "location": "Remote - Worldwide",
+      "team": "Protocol",
+      "allLocations": ["Remote - Worldwide"]
+    },
+    "createdAt": 1790000000000,
+    "descriptionPlain": "Review smart contract code for our settlement protocol before every release.",
+    "description": "<div>Review smart contract code for our settlement protocol before every release.</div>",
+    "id": "3c9a1e5f-7b2d-4e8a-9f60-1a2b3c4d5e6f",
+    "lists": [
+      { "text": "What you will do", "content": "<li>Audit Solidity contracts</li><li>Write threat models</li>" }
+    ],
+    "text": "Smart Contract Auditor",
+    "country": "US",
+    "workplaceType": "remote",
+    "opening": "",
+    "openingPlain": "",
+    "descriptionBody": "<div>Review smart contract code for our settlement protocol before every release.</div>",
+    "descriptionBodyPlain": "Review smart contract code for our settlement protocol before every release.",
+    "hostedUrl": "https://jobs.lever.co/kestrel-ledger/3c9a1e5f-7b2d-4e8a-9f60-1a2b3c4d5e6f",
+    "applyUrl": "https://jobs.lever.co/kestrel-ledger/3c9a1e5f-7b2d-4e8a-9f60-1a2b3c4d5e6f/apply",
+    "salaryDescription": "",
+    "salaryDescriptionPlain": "",
+    "salaryRange": { "currency": "USD", "interval": "per-year-salary", "min": 140000, "max": 180000 }
+  },
+  {
+    "additionalPlain": "",
+    "additional": "",
+    "categories": {
+      "commitment": "Full-time",
+      "department": "Customer Success",
+      "location": "Lisbon",
+      "team": "Accounts"
+    },
+    "createdAt": 1789300000000,
+    "description": "<p>Lead onboarding for <b>institutional</b> customers.</p>",
+    "id": "4d0b2f60-8c3e-4f9b-a071-2b3c4d5e6f70",
+    "lists": [],
+    "text": "Customer Success Lead",
+    "country": "PT",
+    "workplaceType": "onsite",
+    "hostedUrl": "https://jobs.lever.co/kestrel-ledger/4d0b2f60-8c3e-4f9b-a071-2b3c4d5e6f70",
+    "applyUrl": "https://jobs.lever.co/kestrel-ledger/4d0b2f60-8c3e-4f9b-a071-2b3c4d5e6f70/apply"
+  },
+  {
+    "categories": { "commitment": "Full-time", "location": "Lisbon" },
+    "createdAt": 1789000000000,
+    "id": "5e1c3071-9d4f-40ac-b182-3c4d5e6f7081",
+    "text": "Posting missing its hosted URL",
+    "workplaceType": "onsite"
+  }
+]
