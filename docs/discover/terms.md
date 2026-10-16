@@ -1,8 +1,8 @@
 # Terms of service (draft for JobScout Discover)
 
-Effective date: [PLACEHOLDER]
-Operator: [PLACEHOLDER legal name, registered address]
-Governing law and courts: [PLACEHOLDER]
+Effective date: the date this service launches publicly (to be set at launch)
+Operator: Astraeus Business Solutions, registered in Ireland (info@astraeus.ie). Postal address: Bell Cottage, Newtown, Longford Road, Duleek, County Meath, A92 XA31, Ireland.
+Governing law and courts: the laws of Ireland. The courts of Ireland have jurisdiction, without affecting any right you have as a consumer to bring proceedings in the courts of the country where you live.
 
 ## 1. The service
 
@@ -22,7 +22,7 @@ Results are information, not career advice, and we make no promise that you will
 
 ## 5. Plans and accounts
 
-A free tier is available. Paid plans, if offered, are sold only on the operator's own website, never inside the assistant. Signing in from an assistant uses an account you already have on that website. Plan details and prices are on the plans page: [PLACEHOLDER URL]. Refunds and cancellation follow the terms shown when you buy on that site.
+A free tier is available. Paid plans, if offered, are sold only on the operator's own website, never inside the assistant. Signing in from an assistant uses an account you already have on that website. Refunds and cancellation follow the terms shown when you buy on that site.
 
 ## 6. Availability
 
@@ -30,8 +30,8 @@ The service is provided as available. Sources can change or fail without notice,
 
 ## 7. Liability
 
-To the extent the law allows, the operator is not liable for indirect or consequential loss, or for loss arising from reliance on a listing. Nothing here limits liability that cannot lawfully be limited. [PLACEHOLDER: legal review of the cap, if any.]
+To the extent the law allows, the operator is not liable for indirect or consequential loss, or for loss arising from reliance on a listing. Nothing here limits liability that cannot lawfully be limited. Nothing in these terms affects your statutory rights as a consumer.
 
 ## 8. Changes and contact
 
-We may update these terms and will publish the new version with its date. Contact: [PLACEHOLDER email].
+We may update these terms and will publish the new version with its date. Contact: info@astraeus.ie.
