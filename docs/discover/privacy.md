@@ -1,8 +1,8 @@
 # Privacy policy (draft for JobScout Discover)
 
-Effective date: [PLACEHOLDER]
-Operator: [PLACEHOLDER legal name and contact address]
-Contact for privacy questions: [PLACEHOLDER email]
+Effective date: the date this service launches publicly (to be set at launch)
+Operator: Astraeus Business Solutions, Dublin, Ireland (info@astraeus.ie). Postal address: [PLACEHOLDER postal address: not yet published on astraeus.ie, to be added before launch]
+Contact for privacy questions: info@astraeus.ie
 
 ## What JobScout Discover is
 
@@ -28,15 +28,15 @@ To answer a search, the service forwards the search terms to the job sources the
 
 - The service is stateless. It keeps no user profile, search history or session between requests.
 - A short-lived cache (five minutes by default, one hour at most) holds public job listings fetched from sources. It is keyed by source address, not by user, and holds nothing about the person searching.
-- Operational logs kept by the hosting platform may include request time, path, status and IP address. Retention: [PLACEHOLDER, state the real period once a host is chosen]. Search terms are not intentionally logged by the application.
+- Operational logs kept by the hosting platform may include request time, path, status and IP address. Retention: at most 50 MB of logs per container (five files of 10 MB, oldest deleted first), so how many days are kept depends on traffic; the logs are deleted sooner whenever the container is recreated, for example at a deploy, and are not sent off the server. Search terms are not intentionally logged by the application.
 
 ## Sharing
 
-Search terms go to the job sources named above to obtain results. No data is sold, and none is shared for advertising. Hosting and identity providers act as processors: [PLACEHOLDER list once chosen].
+Search terms go to the job sources named above to obtain results. No data is sold, and none is shared for advertising. Hosting and identity providers act as processors: Hostinger International Limited (Cyprus), which provides the virtual server. No identity provider is used while sign-in is not enabled. Certificates are obtained from Let's Encrypt, which sees the host name only.
 
 ## Your choices and rights
 
-You can stop using the service at any time. Because the service keeps no profile, there is normally nothing to delete. For any data held about a signed-in account, contact [PLACEHOLDER email]. Where data protection law such as the GDPR applies, you may request access, correction or erasure and may complain to your supervisory authority.
+You can stop using the service at any time. Because the service keeps no profile, there is normally nothing to delete. For any data held about a signed-in account, contact info@astraeus.ie. Where data protection law such as the GDPR applies, you may request access, correction or erasure and may complain to your supervisory authority.
 
 ## Untrusted listing content
 
