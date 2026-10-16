@@ -1,7 +1,7 @@
 # Terms of service (draft for JobScout Discover)
 
 Effective date: the date this service launches publicly (to be set at launch)
-Operator: Astraeus Business Solutions, registered in Ireland (info@astraeus.ie). Registered address: [PLACEHOLDER postal address: not yet published on astraeus.ie, to be added before launch]
+Operator: Astraeus Business Solutions, registered in Ireland (info@astraeus.ie). Postal address: Bell Cottage, Newtown, Longford Road, Duleek, County Meath, A92 XA31, Ireland.
 Governing law and courts: the laws of Ireland. The courts of Ireland have jurisdiction, without affecting any right you have as a consumer to bring proceedings in the courts of the country where you live.
 
 ## 1. The service

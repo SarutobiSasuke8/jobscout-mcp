@@ -1,7 +1,7 @@
 # Privacy policy (draft for JobScout Discover)
 
 Effective date: the date this service launches publicly (to be set at launch)
-Operator: Astraeus Business Solutions, Dublin, Ireland (info@astraeus.ie). Postal address: [PLACEHOLDER postal address: not yet published on astraeus.ie, to be added before launch]
+Operator: Astraeus Business Solutions (info@astraeus.ie). Postal address: Bell Cottage, Newtown, Longford Road, Duleek, County Meath, A92 XA31, Ireland.
 Contact for privacy questions: info@astraeus.ie
 
 ## What JobScout Discover is
