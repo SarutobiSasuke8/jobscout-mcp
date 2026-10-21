@@ -14,6 +14,7 @@ JobScout Discover is the hosted, directory-ready packaging of JobScout MCP. The 
 | Demo account instructions | [demo-account.md](demo-account.md) |
 | Test cases (5 positive, 3 negative) | [test-cases.md](test-cases.md) |
 | Walkthrough | [walkthrough.md](walkthrough.md) |
+| Listing PNGs and capture provenance | [assets/README.md](../../plugins/jobscout-discover/assets/README.md) |
 | Monetisation | [MONETISATION.md](../MONETISATION.md) |
 
 ## Package format
@@ -30,7 +31,7 @@ The plugin searches, merges and shows provenance. It has no tool to apply, messa
 2. OAuth client and authorisation server for existing-account sign-in.
 3. A real demo account, entered only in the portal's private field.
 4. `.app.json` with the `plugin_asdk_app_id` issued by the submission portal.
-5. Icon, logo and screenshots as PNG in `plugins/jobscout-discover/assets/`.
+5. [x] Icon, logo and 3 screenshots as PNG in `plugins/jobscout-discover/assets/`, referenced by the manifest. The screenshots show actual public-provider MCP output in a local capture view; they do not prove a ChatGPT connection or live hosted deployment. See the [asset record](../../plugins/jobscout-discover/assets/README.md).
 6. Final privacy and terms text with the operator's details and legal review. The proxy already serves these drafts at `/privacy` and `/terms`.
 7. Submitting through the portal, which only the operator can do.
 8. A Docker run of the compose stack and a first deployment.

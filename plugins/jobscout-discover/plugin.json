@@ -19,6 +19,13 @@
         "longDescription": "JobScout Discover searches the job sources the operator has enabled, merges duplicate listings into one pool, and shows where each listing was found. It does not rank jobs for you, store your CV, contact employers or apply on your behalf. Every listing keeps a link back to its source so you can verify it before you spend time on it.",
         "developerName": "JobScout MCP maintainers",
         "category": "Productivity",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png",
+        "screenshots": [
+          "./assets/screenshot-sources.png",
+          "./assets/screenshot-search.png",
+          "./assets/screenshot-briefing.png"
+        ],
         "capabilities": ["Read"],
         "websiteURL": "https://jobscout.mcprack.dev",
         "privacyPolicyURL": "https://jobscout.mcprack.dev/privacy",
