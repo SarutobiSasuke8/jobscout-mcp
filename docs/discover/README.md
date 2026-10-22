@@ -34,5 +34,5 @@ The plugin searches, merges and shows provenance. It has no tool to apply, messa
 5. [x] Icon, logo and 3 screenshots as PNG in `plugins/jobscout-discover/assets/`, referenced by the manifest. The screenshots show actual public-provider MCP output in a local capture view; they do not prove a ChatGPT connection or live hosted deployment. See the [asset record](../../plugins/jobscout-discover/assets/README.md).
 6. Final privacy and terms text with the operator's details and legal review. The proxy already serves these drafts at `/privacy` and `/terms`.
 7. Submitting through the portal, which only the operator can do.
-8. A Docker run of the compose stack and a first deployment.
+8. A Docker run of the compose stack and a first deployment. The live host is deployed through the operator's shared edge, not `deploy/compose.yaml` (see [Production on the shared VPS](../DEPLOYMENT.md#production-on-the-shared-vps)); the local Docker run is still to do.
 9. Optional Claude Connectors Directory listing, which also needs the live domain.

@@ -217,7 +217,7 @@ if (live && manifestHost) {
     }
   }
 } else if (manifestHost) {
-  blockers.push(`hosting at ${manifestHost} not verified live: add the DNS record, deploy (docs/DEPLOYMENT.md), then run npm run check:plugin -- --live`);
+  blockers.push(`hosting at ${manifestHost} not verified live: deploy it (docs/DEPLOYMENT.md, "Production on the shared VPS"), then run npm run check:plugin -- --live`);
 }
 
 for (const message of blockers) console.log(`${strict ? "FAIL" : "submission blocker"}: ${message}`);
