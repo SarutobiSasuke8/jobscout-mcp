@@ -43,8 +43,22 @@ function failure(error: unknown): CallToolResult {
   };
 }
 
-export function createJobScoutServer(registry: ProviderRegistry): McpServer {
+export interface JobScoutServerOptions {
+  /**
+   * Merged into every tool's `_meta`. The hosted HTTP entrypoint uses it to declare OpenAI
+   * `securitySchemes` (noauth and/or oauth2) when OAuth is configured. Unset for stdio.
+   */
+  toolMeta?: Record<string, unknown> | undefined;
+}
+
+export function createJobScoutServer(registry: ProviderRegistry, options: JobScoutServerOptions = {}): McpServer {
   const server = new McpServer({ name: "jobscout-mcp", version: VERSION });
+  const { toolMeta } = options;
+  if (toolMeta) {
+    const register = server.registerTool.bind(server) as (name: string, config: { _meta?: Record<string, unknown> }, callback: unknown) => unknown;
+    server.registerTool = ((name: string, config: { _meta?: Record<string, unknown> }, callback: unknown) =>
+      register(name, { ...config, _meta: { ...config._meta, ...toolMeta } }, callback)) as unknown as typeof server.registerTool;
+  }
 
   server.registerTool(
     "jobscout_list_sources",

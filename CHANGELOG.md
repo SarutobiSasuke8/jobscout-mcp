@@ -4,6 +4,7 @@
 
 ### Added
 
+- OAuth 2.1 resource server for the HTTP entrypoint, configured by `JOBSCOUT_OAUTH_*` and off by default: RFC 9728 protected resource metadata, the issuer's RFC 8414 metadata passed through, startup checks that the issuer enforces authorisation code with PKCE `S256` only, JWT access-token validation on `/mcp` (signature via JWKS, `typ`, `iss`, `aud`, `exp`, `sub`, scope), `required` and `optional` modes, and OpenAI `securitySchemes` on every tool. The issuer stays external (JobScout Pro). Design record in `docs/discover/oauth.md`; the proxy routes the discovery paths and compose passes the settings
 - Recorded-fixture test suite for every source adapter (`test/source-fixtures.test.ts`, synthetic data in `test/fixtures/sources/`), deduplication edge cases across sources (`test/dedupe-edge-cases.test.ts`), and a test-only network guard preloaded by `npm test` that fails any test attempting a real network call
 - Single-VPS hosting recipe for JobScout Discover in `deploy/`: compose stack (existing `Dockerfile` behind Caddy with automatic HTTPS), per-IP rate limits and a request-size cap at the proxy, container, proxy and end-to-end health checks, and `/`, `/privacy` and `/terms` pages rendered from `docs/discover/`
 - `npm run deploy:check` (external operator check) and `npm run deploy:load` (rate-limit and size-cap load script)
