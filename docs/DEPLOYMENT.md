@@ -1,6 +1,6 @@
 # Remote deployment (Streamable HTTP)
 
-JobScout can run as a hosted MCP server over Streamable HTTP, in addition to the local stdio server. This page covers the entrypoint, the container, the single-VPS hosting recipe in [`deploy/`](../deploy) for JobScout Discover at `https://jobscout.mcprack.dev`, and the operator runbook. Nothing here deploys anything: the host name is a placeholder until its DNS record exists.
+JobScout can run as a hosted MCP server over Streamable HTTP, in addition to the local stdio server. This page covers the entrypoint, the container, the single-VPS hosting recipe in [`deploy/`](../deploy) for JobScout Discover at `https://jobscout.mcprack.dev`, and the operator runbook. Nothing here deploys anything. The `jobscout.mcprack.dev` A record exists and points at the shared VPS, but that host is served through the operator's shared edge, not through `deploy/compose.yaml`: read [Production on the shared VPS](#production-on-the-shared-vps) before any first deploy.
 
 ## Entrypoint
 
@@ -102,23 +102,31 @@ Plain HTTP behind the documented flag (`JOBSCOUT_SITE_ADDRESS=:80` in `deploy/lo
 ```bash
 cd deploy
 docker compose --env-file local.env up --build
-# in another shell, from the repository root
-npm run deploy:check -- http://localhost:8088
+# in another shell
+docker compose --env-file local.env ps     # from deploy/: jobscout and caddy both "healthy"
+# from the repository root; the load test first, on a fresh proxy
 npm run deploy:load -- http://localhost:8088 --requests 40 --expect-limit 20
+# then wait a minute (the window) before the endpoint check
+npm run deploy:check -- http://localhost:8088
 npx -y @modelcontextprotocol/inspector@2.1.0 --cli http://localhost:8088/mcp --transport http --method tools/list
 ```
 
-For TLS from Caddy's internal CA instead, set `JOBSCOUT_SITE_ADDRESS=localhost` and use `https://localhost:8443` with `--insecure` on the scripts. The load test fails unless exactly the configured number of calls succeed and every other call gets `429` with `Retry-After`; it also sends one 128 KB body and expects `413`. Run it against a fresh proxy (the window is sliding) and never against a production host other people are using.
+Caddy starts only once the app container is healthy. Depending on the Docker version, the first passing `HEALTHCHECK` can take up to one interval (30 s), so allow up to about 30 s after the app's `listening` line before the proxy answers; until then port 8088 refuses connections. Caddy has its own health check too (`wget` to its loopback `:2020/healthz`). On Windows and macOS, Docker Desktop must be running (`docker version` shows a `Server:` section); the commands are the same in PowerShell.
+
+For TLS from Caddy's internal CA instead, set `JOBSCOUT_SITE_ADDRESS=localhost` and use `https://localhost:8443` with `--insecure` on the scripts. The load test fails unless exactly the configured number of calls succeed and every other call gets `429` with `Retry-After`; it also sends one 128 KB body and expects `413`. Run it against a fresh proxy (the window is sliding) and never against a production host other people are using. `deploy:check` spends three `/mcp` calls, so running it first inside the same minute makes the load test fail with three too few `200` responses.
 
 Without Docker, the same Caddyfile runs against the Node server directly:
 
 ```bash
 npm run build
 PORT=8099 node dist/src/http-server.js &
+until curl -sf http://127.0.0.1:8099/health >/dev/null; do sleep 1; done
 JOBSCOUT_SITE_ADDRESS=:8088 JOBSCOUT_UPSTREAM=127.0.0.1:8099 \
 JOBSCOUT_SITE_ROOT=./deploy/site JOBSCOUT_CONTENT_ROOT=./docs/discover \
 JOBSCOUT_MCP_RATE_EVENTS=20 caddy run --config deploy/Caddyfile --adapter caddyfile
 ```
+
+Wait for the app before starting Caddy: Caddy probes the upstream's `/health` once at start and then every 30 s, and while the last probe failed `/mcp` answers `503` ("no upstreams available") even though `/health` and the pages work. Compose avoids this by starting Caddy only after the app is healthy. The same 30 s gap applies after the app container is restarted on its own (for example `docker compose up -d jobscout`), so run the endpoint check at least 30 s after any app restart.
 
 `caddy` here must be a build with the rate-limit module: `xcaddy build v2.11.4 --with github.com/mholt/caddy-ratelimit@5625512f24f6f59d6f64fb3aafe5eecff0b286db`.
 
@@ -134,9 +142,26 @@ handle_path /gateway/* {
 
 with the gateway's upstream set to `http://jobscout:8080/mcp` and its `tools_allow` list using the real tool names from `tools/list` (`jobscout_search_jobs`, `jobscout_list_sources` and so on). The gateway then does per-identity limits and entitlement, and Caddy keeps TLS and the per-IP backstop. The port and config shape come from the gateway's own README; check them there before wiring it in. Not part of this recipe and not tested here.
 
-## Operator runbook
+## Production on the shared VPS
 
-All values below are placeholders. No secrets are needed for the anonymous service; keep `deploy/.env` out of git.
+`jobscout.mcprack.dev` does not run this compose file. The operator's VPS already has nginx on public ports 80 and 443 for other sites, so the live host is deployed by the operator's private edge repository (`vps-edge`), which builds this repository at a pinned commit:
+
+| Concern | `deploy/` here (standalone VPS) | `vps-edge` (the live host) |
+|---|---|---|
+| Public 80 and 443 | Caddy in `deploy/compose.yaml` | The host's nginx; TLS with certbot certificates (its runbook) |
+| Proxy | `deploy/Caddyfile`, automatic HTTPS | Its own Caddyfile, plain HTTP on a loopback port behind nginx, with the same JobScout routes and limit defaults |
+| App image | Root `Dockerfile`, tag `JOBSCOUT_IMAGE_TAG` | Root `Dockerfile` of jobscout-mcp at the commit pinned as `JOBSCOUT_SHA` |
+| Pages | `deploy/site/` and `docs/discover/` from this checkout | The same two folders, mounted from the pinned checkout |
+| App settings | `JOBSCOUT_ENABLE_*`, `JOBSCOUT_MAX_RESULTS`, `JOBSCOUT_FEED_CACHE_TTL_MS` in `deploy/.env` | The same names in the edge's `.env` |
+| Deploy, upgrade, rollback | Sections 2, 4 and 5 below | The edge's deploy and rollback scripts; upgrade by bumping `JOBSCOUT_SHA` |
+
+On that host, do not run sections 1 to 5 below: Caddy would fail to bind 80 and 443, or take them from nginx. A change in this repository reaches the live host only when the edge pin is bumped to a commit that contains it. After an edge deploy, run the checks in [section 3](#3-certificates) from any machine with Node 22 and a checkout of this repository (no `npm ci` needed: both scripts use only Node's standard library).
+
+The sections below stay correct for a VPS where nothing else owns ports 80 and 443.
+
+## Operator runbook (standalone VPS)
+
+All values below are placeholders. No secrets are needed for the anonymous service; keep `deploy/.env` out of git. For `jobscout.mcprack.dev` itself, see [Production on the shared VPS](#production-on-the-shared-vps) first.
 
 ### 1. DNS record
 
@@ -151,7 +176,7 @@ If the zone uses a CDN proxy (for example an orange-cloud setting), turn it off 
 
 ### 2. First boot
 
-On a VPS with Docker Engine and the compose plugin, ports 80 and 443 (TCP) and 443 (UDP, optional, for HTTP/3) open to the internet:
+On a VPS with Docker Engine and the compose plugin, nothing else listening on ports 80 or 443, and ports 80 and 443 (TCP) and 443 (UDP, optional, for HTTP/3) open to the internet:
 
 ```bash
 git clone https://github.com/SarutobiSasuke8/jobscout-mcp.git
@@ -160,12 +185,12 @@ git checkout <release tag or reviewed commit>
 cd deploy
 cp .env.example .env        # edit sources and limits; set JOBSCOUT_IMAGE_TAG to the tag above
 docker compose up -d --build
-docker compose ps           # both services should reach "healthy"
+docker compose ps           # both services should reach "healthy" (Caddy up to about 30 s after the app)
 ```
 
 ### 3. Certificates
 
-Issuance is automatic on first boot once DNS resolves to the VPS: Caddy requests a Let's Encrypt certificate for `JOBSCOUT_SITE_ADDRESS` and renews it about 30 days before expiry. Watch it happen with `docker compose logs -f caddy` (look for `certificate obtained successfully`). Certificates and the ACME account live in the `caddy_data` volume; back it up, and never delete it casually, because repeated re-issuance can hit Let's Encrypt rate limits. No contact email is configured; to add one, put `email <address>` in the global block of the Caddyfile. Then confirm from outside:
+Issuance is automatic on first boot once DNS resolves to the VPS: Caddy requests a Let's Encrypt certificate for `JOBSCOUT_SITE_ADDRESS` and renews it about 30 days before expiry. Watch it happen with `docker compose logs -f caddy` (look for `certificate obtained successfully`). Certificates and the ACME account live in the `caddy_data` volume; back it up, and never delete it casually, because repeated re-issuance can hit Let's Encrypt rate limits. No contact email is configured; to add one, put `email <address>` in the global block of the Caddyfile. Then confirm from outside, on any machine with Node 22 and a checkout of this repository (the VPS needs no Node):
 
 ```bash
 npm run deploy:check -- https://jobscout.mcprack.dev
@@ -238,8 +263,8 @@ Automated coverage is in `test/remote-http.test.ts` (health, routing, initialise
 
 | Gap | Needed |
 |---|---|
-| DNS and deployment | The `jobscout.mcprack.dev` record and a VPS running this recipe. Not done. |
-| Docker run of the recipe | The compose stack has not yet been brought up with Docker. The proxy config was run with a locally built Caddy against the Node server (see the pull request that added `deploy/`). |
+| DNS and deployment | The `jobscout.mcprack.dev` A record exists and points at the shared VPS, where nginx still answers it from another site's server block (a sign-in redirect and a certificate for a different name, checked 2026-10-23). Needs the edge deployed there with a `JOBSCOUT_SHA` pin (see [Production on the shared VPS](#production-on-the-shared-vps)). Not done. |
+| Docker run of the recipe | The compose stack has not yet been brought up with Docker. `docker compose config` passes for `local.env` and `.env.example`, and the Caddyfile passes `deploy:check` (8 of 8) and `deploy:load` with a locally built Caddy against the Node server. |
 | Domain verification | Done in the OpenAI submission portal against the live domain. |
 | OAuth | A registered client and an authorisation server for existing-account sign-in. The anonymous service has no accounts. |
 | Policy text | `docs/discover/privacy.md` and `terms.md` are drafts with placeholders and are served as such. They need the operator's details, the log retention above and legal review. |
