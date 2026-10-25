@@ -28,7 +28,7 @@ Authorisation code and PKCE are enforced by the issuer, which is where the code 
 
 ## Topologies
 
-1. **Direct (this recipe).** Caddy sends `/mcp` and the discovery paths to JobScout MCP, which validates tokens itself. JobScout Pro serves `/oauth/*` and `/.well-known/jwks.json` on the same host. Set `JOBSCOUT_OAUTH_AUDIENCE` to the audience the issuer mints (JobScout Pro mints `mcp-host-gateway` unless its `TOKEN_AUDIENCE` is changed).
+1. **Direct (this recipe).** Caddy sends `/mcp` and the discovery paths to JobScout MCP, which validates tokens itself. JobScout Pro serves `/oauth/*` and `/.well-known/jwks.json` on the same host. Set `JOBSCOUT_OAUTH_AUDIENCE` to the audience the issuer mints (JobScout Pro mints `mcp-host-gateway` unless its `TOKEN_AUDIENCE` is changed). If JobScout MCP is on a different origin from JobScout Pro, add that origin to the issuer's `EXTRA_RESOURCE_ORIGINS`, or authorisation fails with `invalid_target`. See [oauth-e2e.md](oauth-e2e.md).
 2. **Behind mcp-host-gateway.** The gateway validates the same tokens and applies plan limits. JobScout MCP stays behind it on the compose network with OAuth off (the gateway can send a shared upstream header if needed). JobScout Pro already publishes protected resource metadata for this case.
 
 Plan limits are not enforced by JobScout MCP in either topology. The token's `plan` claim reaches tool handlers as `AuthInfo.extra.plan`, but entitlement stays with the gateway.
