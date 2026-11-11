@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-10-19
+
 ### Added
 
 - Recorded-fixture test suite for every source adapter (`test/source-fixtures.test.ts`, synthetic data in `test/fixtures/sources/`), deduplication edge cases across sources (`test/dedupe-edge-cases.test.ts`), and a test-only network guard preloaded by `npm test` that fails any test attempting a real network call

@@ -5,4 +5,4 @@
  * and the package metadata, and had already drifted once. `test/version.test.ts` asserts this
  * constant still matches package.json, so the duplication cannot silently return.
  */
-export const VERSION = "0.2.1";
+export const VERSION = "0.3.0";
