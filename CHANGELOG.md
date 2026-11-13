@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-10-19
+
 ### Added
 
 - OAuth 2.1 resource server for the HTTP entrypoint, configured by `JOBSCOUT_OAUTH_*` and off by default: RFC 9728 protected resource metadata, the issuer's RFC 8414 metadata passed through, startup checks that the issuer enforces authorisation code with PKCE `S256` only, JWT access-token validation on `/mcp` (signature via JWKS, `typ`, `iss`, `aud`, `exp`, `sub`, scope), `required` and `optional` modes, and OpenAI `securitySchemes` on every tool. The issuer stays external (JobScout Pro). Design record in `docs/discover/oauth.md`; the proxy routes the discovery paths and compose passes the settings
