@@ -9,7 +9,9 @@ import { createProviderRegistry } from "./registry.js";
 import { createJobScoutServer } from "./server.js";
 import { VERSION } from "./version.js";
 
+import type { AuthInfo } from "@modelcontextprotocol/server";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import type { OAuthGuard } from "./oauth.js";
 import type { ProviderRegistry } from "./registry.js";
 
 /**
@@ -19,9 +21,12 @@ import type { ProviderRegistry } from "./registry.js";
  * plain JSON response and closes both. JobScout holds no profile or session, so there is nothing
  * to resume, and stateless mode lets any number of replicas serve any request.
  *
- * Authentication is not implemented here. A public directory listing needs OAuth with a
- * registered client, which requires a live domain and is documented as a gap in
- * docs/DEPLOYMENT.md. The optional bearer token below only protects a private deployment.
+ * Authentication has two mutually exclusive modes:
+ * - `oauth`: OAuth 2.1 resource server. Tokens are JWT access tokens from one external issuer,
+ *   verified against its JWKS, with RFC 9728 discovery served here. This is what a public
+ *   directory listing (ChatGPT, Claude) uses. See src/oauth.ts and docs/discover/oauth.md.
+ * - `bearerToken`: one shared secret. Protects a private deployment, or the hop from a gateway
+ *   that has already authenticated the user.
  */
 
 export const MCP_PATH = "/mcp";
@@ -33,6 +38,8 @@ export interface HttpHandlerOptions {
   registryFactory?: () => ProviderRegistry;
   /** When set, MCP requests must carry `Authorization: Bearer <token>`. /health stays open. */
   bearerToken?: string | undefined;
+  /** OAuth 2.1 resource-server guard. Cannot be combined with `bearerToken`. */
+  oauth?: OAuthGuard | undefined;
 }
 
 /** Environment for hosted mode. JobSpy scrapes from the host's own address, so it is never enabled remotely. */
@@ -58,6 +65,9 @@ function tokenMatches(header: string | null, expected: string): boolean {
 /** Web-standard request handler. Kept separate from Node plumbing so tests can call it directly. */
 export function createFetchHandler(options: HttpHandlerOptions = {}): (request: Request) => Promise<Response> {
   const registryFactory = options.registryFactory ?? (() => createProviderRegistry(hostedEnvironment()));
+  if (options.oauth && options.bearerToken) {
+    throw new Error("choose one authentication mode: OAuth or a shared bearer token, not both");
+  }
   return async (request) => {
     const { pathname } = new URL(request.url);
 
@@ -66,20 +76,32 @@ export function createFetchHandler(options: HttpHandlerOptions = {}): (request: 
       return json(200, { status: "ok", name: "jobscout-mcp", version: VERSION, transport: "streamable-http" });
     }
 
+    const discovery = options.oauth?.metadataResponse(request);
+    if (discovery) return discovery;
+
     if (pathname !== MCP_PATH) return json(404, { error: "not_found" });
 
-    if (options.bearerToken && !tokenMatches(request.headers.get("authorization"), options.bearerToken)) {
+    let authInfo: AuthInfo | undefined;
+    if (options.oauth) {
+      // Optional mode lets anonymous calls through; a presented token is always verified.
+      const anonymousAllowed = options.oauth.mode === "optional" && !request.headers.has("authorization");
+      if (!anonymousAllowed) {
+        const outcome = await options.oauth.authenticate(request);
+        if (outcome instanceof Response) return outcome;
+        authInfo = outcome;
+      }
+    } else if (options.bearerToken && !tokenMatches(request.headers.get("authorization"), options.bearerToken)) {
       return json(401, { error: "unauthorized" }, { "www-authenticate": 'Bearer realm="jobscout-mcp"' });
     }
 
     // Stateless mode has no server-initiated stream and no session to delete.
     if (request.method !== "POST") return json(405, { error: "method_not_allowed" }, { allow: "POST" });
 
-    const server = createJobScoutServer(registryFactory());
+    const server = createJobScoutServer(registryFactory(), { toolMeta: options.oauth?.toolMeta });
     const transport = new WebStandardStreamableHTTPServerTransport({ enableJsonResponse: true, maxRequestBodySize: MAX_BODY_BYTES });
     try {
       await server.connect(transport);
-      return await transport.handleRequest(request);
+      return await transport.handleRequest(request, authInfo ? { authInfo } : {});
     } catch {
       return json(500, { error: "internal_error" });
     } finally {

@@ -11,6 +11,7 @@ JobScout Discover is the hosted, directory-ready packaging of JobScout MCP. The 
 | Published pages | `/`, `/privacy` and `/terms`, served by the proxy in `deploy/`; the policy pages render `privacy.md` and `terms.md` from this folder |
 | Privacy policy draft | [privacy.md](privacy.md) |
 | Terms draft | [terms.md](terms.md) |
+| OAuth design record and configuration | [oauth.md](oauth.md) |
 | Demo account instructions | [demo-account.md](demo-account.md) |
 | Test cases (5 positive, 3 negative) | [test-cases.md](test-cases.md) |
 | Walkthrough | [walkthrough.md](walkthrough.md) |
@@ -28,7 +29,7 @@ The plugin searches, merges and shows provenance. It has no tool to apply, messa
 ## Remaining gaps (not faked)
 
 1. DNS record for `jobscout.mcprack.dev`, a deployment of the `deploy/` recipe, and domain verification. The recipe and runbook exist; `npm run check:plugin -- --live` confirms the live URLs.
-2. OAuth client and authorisation server for existing-account sign-in.
+2. [x] OAuth for existing-account sign-in. JobScout MCP is now an OAuth 2.1 resource server: protected resource metadata, the issuer's authorisation server metadata, PKCE `S256`-only issuer checks and JWT validation on `/mcp`. The authorisation server and accounts stay with the operator's JobScout Pro issuer, the same one mcp-host-gateway trusts. See [oauth.md](oauth.md) for the decision, the environment variables and what is still open (a live run, and the linking prompt for any future account-only tool).
 3. A real demo account, entered only in the portal's private field.
 4. `.app.json` with the `plugin_asdk_app_id` issued by the submission portal.
 5. [x] Icon, logo and 3 screenshots as PNG in `plugins/jobscout-discover/assets/`, referenced by the manifest. The screenshots show actual public-provider MCP output in a local capture view; they do not prove a ChatGPT connection or live hosted deployment. See the [asset record](../../plugins/jobscout-discover/assets/README.md).

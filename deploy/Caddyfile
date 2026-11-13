@@ -72,6 +72,27 @@ http://:{$JOBSCOUT_PROXY_HEALTH_PORT:2020} {
 		}
 	}
 
+	# OAuth discovery documents (RFC 9728 protected resource metadata and the issuer's RFC 8414
+	# metadata), answered by the app when JOBSCOUT_OAUTH_ISSUER is set and 404 otherwise. If the
+	# issuer runs on this host and its own route claims /.well-known/*, place that route first:
+	# it serves the same documents. ACME challenges are answered by Caddy before routing.
+	@oauth_discovery path /.well-known/oauth-protected-resource /.well-known/oauth-protected-resource/* /.well-known/oauth-authorization-server
+	handle @oauth_discovery {
+		route {
+			rate_limit {
+				zone discovery_per_ip {
+					key {client_ip}
+					events {$JOBSCOUT_SITE_RATE_EVENTS:120}
+					window {$JOBSCOUT_SITE_RATE_WINDOW:1m}
+				}
+			}
+			request_body {
+				max_size 1KB
+			}
+			reverse_proxy {$JOBSCOUT_UPSTREAM:jobscout:8080}
+		}
+	}
+
 	# End-to-end health: answered by the app, through the proxy and its TLS.
 	handle /health {
 		route {

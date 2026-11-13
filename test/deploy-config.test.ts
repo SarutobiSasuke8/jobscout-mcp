@@ -75,3 +75,11 @@ void test("the deploy recipe carries no secrets", () => {
     assert.doesNotMatch(text, /(token|secret|password)\s*[=:]\s*\S{8,}/iu);
   }
 });
+
+void test("the proxy routes OAuth discovery to the app and compose passes only public OAuth settings", () => {
+  assert.match(caddyfile, /@oauth_discovery path \/\.well-known\/oauth-protected-resource \/\.well-known\/oauth-protected-resource\/\* \/\.well-known\/oauth-authorization-server/u);
+  for (const name of ["JOBSCOUT_OAUTH_ISSUER", "JOBSCOUT_OAUTH_RESOURCE_URL", "JOBSCOUT_OAUTH_AUDIENCE", "JOBSCOUT_OAUTH_MODE"]) {
+    assert.ok(compose.includes(`${name}: $` + `{${name}:-}`), `${name} must default to empty in compose`);
+    assert.ok(envExample.includes(`${name}=\n`), `${name} must be listed empty in deploy/.env.example`);
+  }
+});
