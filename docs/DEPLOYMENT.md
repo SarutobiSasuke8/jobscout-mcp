@@ -32,6 +32,7 @@ Design choices:
 | `PORT` | `8080` | Listen port |
 | `HOST` | `127.0.0.1` | Listen address |
 | `JOBSCOUT_HTTP_BEARER_TOKEN` | unset | If set, `/mcp` needs `Authorization: Bearer <token>`. For a private deployment only, never for the anonymous public service. Supply it from the host's secret store, never from the repository. |
+| `JOBSCOUT_OAUTH_*` | unset (OAuth off) | OAuth 2.1 resource server for existing-account sign-in. Public values only. Cannot be combined with `JOBSCOUT_HTTP_BEARER_TOKEN`. See [OAuth](discover/oauth.md). |
 | `JOBSCOUT_ENABLE_*` and provider URLs | see `.env.example` | Choose which sources are active |
 
 ## Hosting recipe (single VPS)
@@ -241,6 +242,6 @@ Automated coverage is in `test/remote-http.test.ts` (health, routing, initialise
 | DNS and deployment | The `jobscout.mcprack.dev` record and a VPS running this recipe. Not done. |
 | Docker run of the recipe | The compose stack has not yet been brought up with Docker. The proxy config was run with a locally built Caddy against the Node server (see the pull request that added `deploy/`). |
 | Domain verification | Done in the OpenAI submission portal against the live domain. |
-| OAuth | A registered client and an authorisation server for existing-account sign-in. The anonymous service has no accounts. |
+| OAuth | Built as a resource server (see [OAuth](discover/oauth.md)); the issuer is JobScout Pro. Needs the issuer deployed on the live host, `JOBSCOUT_OAUTH_*` set in `deploy/.env`, and a run against ChatGPT. Off by default, so the anonymous service is unchanged. |
 | Policy text | `docs/discover/privacy.md` and `terms.md` are drafts with placeholders and are served as such. They need the operator's details, the log retention above and legal review. |
 | Server registry entry | `server.json` lists only the npm package. A `remotes` entry needs the live URL. |

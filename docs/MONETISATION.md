@@ -23,7 +23,7 @@ Own-site freemium.
 | Needed | Why | State |
 |---|---|---|
 | Public domain with HTTPS | Directory submission, OAuth redirect and domain verification | Gap |
-| OAuth 2.1 authorisation server and a registered client | Existing-account sign-in from the assistant | Gap |
+| OAuth 2.1 authorisation server and a registered client | Existing-account sign-in from the assistant | Resource server built here ([OAuth](discover/oauth.md)); issuer and client registration in JobScout Pro; not yet live |
 | Entitlement lookup (plan to limits) | Applying free versus paid limits per request | Gap, not built |
 | Own-site checkout and plans page | Selling plans outside the assistant | Gap |
 | Rate limiting by plan | Enforcing limits | Gap, not built |
