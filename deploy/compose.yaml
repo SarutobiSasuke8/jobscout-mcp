@@ -26,6 +26,13 @@ services:
       JOBSCOUT_ENABLE_LENNYSJOBS: ${JOBSCOUT_ENABLE_LENNYSJOBS:-false}
       JOBSCOUT_MAX_RESULTS: ${JOBSCOUT_MAX_RESULTS:-100}
       JOBSCOUT_FEED_CACHE_TTL_MS: ${JOBSCOUT_FEED_CACHE_TTL_MS:-300000}
+      # OAuth resource server (docs/discover/oauth.md). Off while JOBSCOUT_OAUTH_ISSUER is empty.
+      # Public values only (issuer URL, audience); the issuer's keys are fetched from its JWKS.
+      JOBSCOUT_OAUTH_ISSUER: ${JOBSCOUT_OAUTH_ISSUER:-}
+      JOBSCOUT_OAUTH_RESOURCE_URL: ${JOBSCOUT_OAUTH_RESOURCE_URL:-}
+      JOBSCOUT_OAUTH_AUDIENCE: ${JOBSCOUT_OAUTH_AUDIENCE:-}
+      JOBSCOUT_OAUTH_MODE: ${JOBSCOUT_OAUTH_MODE:-}
+      JOBSCOUT_OAUTH_SCOPES: ${JOBSCOUT_OAUTH_SCOPES:-}
     # The image's own HEALTHCHECK (Dockerfile) polls /health inside the container.
     read_only: true
     tmpfs:

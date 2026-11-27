@@ -70,7 +70,7 @@ JobScout runs two ways: locally over stdio (works today), or as a hosted Streama
 
 ### ChatGPT and Codex plugin (JobScout Discover)
 
-The directory package is in [`plugins/jobscout-discover`](plugins/jobscout-discover) and follows [OpenAI's plugin format](https://developers.openai.com/plugins/build/plugins). Its manifest and `mcp.json` point at `https://jobscout.mcprack.dev`. It is **not yet listed**: it needs that deployment to go live, OAuth for existing-account sign-in, a demo account and a portal submission. See [JobScout Discover](docs/discover/README.md) for the review materials and the full list of gaps, and [deployment](docs/DEPLOYMENT.md) for the hosting recipe and operator runbook.
+The directory package is in [`plugins/jobscout-discover`](plugins/jobscout-discover) and follows [OpenAI's plugin format](https://developers.openai.com/plugins/build/plugins). Its manifest and `mcp.json` point at `https://jobscout.mcprack.dev`. It is **not yet listed**: it needs that deployment to go live, a demo account and a portal submission. OAuth for existing-account sign-in is built as a resource server, off by default (see [OAuth](docs/discover/oauth.md)). See [JobScout Discover](docs/discover/README.md) for the review materials and the full list of gaps, and [deployment](docs/DEPLOYMENT.md) for the hosting recipe and operator runbook.
 
 Once the deployment is live, a ChatGPT developer-mode connector or a Claude custom connector can point at `https://jobscout.mcprack.dev/mcp`, and Claude Code can use `claude mcp add --transport http jobscout https://jobscout.mcprack.dev/mcp`. Until then, use the local install above.
 
